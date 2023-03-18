@@ -39,22 +39,22 @@ public class Cameras : MonoBehaviour
     public GameObject LFPreviewPlane = null;
     private Material LFMediaMaterial = null;
     private Texture2D LFMediaTexture = null;
-    // private byte[] LFFrameData = null;
+    private byte[] LFFrameData = null;
 
     public GameObject RFPreviewPlane = null;
     private Material RFMediaMaterial = null;
     private Texture2D RFMediaTexture = null;
-    // private byte[] RFFrameData = null;
+    private byte[] RFFrameData = null;
 
     public GameObject LLPreviewPlane = null;
     private Material LLMediaMaterial = null;
     private Texture2D LLMediaTexture = null;
-    // private byte[] LLFrameData = null;
+    private byte[] LLFrameData = null;
 
     public GameObject RRPreviewPlane = null;
     private Material RRMediaMaterial = null;
     private Texture2D RRMediaTexture = null;
-    // private byte[] RRFrameData = null;
+    private byte[] RRFrameData = null;
 
     public Radar3D radar3D;
     public Arrows3D arrows3D;
@@ -114,8 +114,7 @@ public class Cameras : MonoBehaviour
         radar3D.mapStart();
         radar3D.mapActivate(false);
         arrows3D.mapStart();
-        // mapsIsActive["Arrows3D"] = true;
-        arrows3D.mapActivate(true);
+        arrows3D.mapActivate(false);
 
 #if ENABLE_WINMD_SUPPORT
         researchMode = new HL2ResearchMode();
@@ -153,8 +152,8 @@ public class Cameras : MonoBehaviour
 
     void LateUpdate()
     {
-        radar3D.markersRenderDisabled();
-        arrows3D.markersRenderDisabled();
+        // radar3D.markersRenderDisabled();
+        // arrows3D.markersRenderDisabled();
         
         Vector3[] test = {new Vector3(5.0f, 1.0f, 2.0f), new Vector3(-1.0f, -1.5f, 1.2f), new Vector3(1.0f, 0.0f, 2.0f), new Vector3(0.0f, -2.0f, 2.0f)};
         radar3D.plotMarkers(0, test[0]);
@@ -573,12 +572,14 @@ public class Cameras : MonoBehaviour
             // {
             //     marker.GetComponent<Renderer>().enabled = false;
             // }
+            radar3D.markersRenderDisabled();
+            arrows3D.markersRenderDisabled();
             foreach (var det_marker in detected_markers)
             {
                 int id = det_marker.Id;
                 pos = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
                 pos.y -= 1.1f;               
-                // radar3D.plotMarkers(id, pos);
+                radar3D.plotMarkers(id, pos);
                 arrows3D.arrowPoint(id, pos);
             }
             // textLL.text = $"LLDetected: {detected_markers.Count} markers, Pos : {pos.y}, {pos.x}, {pos.z}.";// Pos : {pos.x}, {pos.y}, {pos.z}";
@@ -593,7 +594,7 @@ public class Cameras : MonoBehaviour
                 pos.y = pos.y * (-1);
                 pos.x = pos.x * (-1);
                 pos.y -= 0.02f;
-                // radar3D.plotMarkers(id, pos);
+                radar3D.plotMarkers(id, pos);
                 arrows3D.arrowPoint(id, pos);
             }
             // textLF.text = $"LFDetected: {detected_markers.Count} markers, Pos : {pos.y}, {pos.x}, {pos.z}.";// Pos : {pos.x}, {pos.y}, {pos.z}";
@@ -606,7 +607,7 @@ public class Cameras : MonoBehaviour
                 int id = det_marker.Id;
                 pos = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
                 pos.y += 0.3f;
-                // radar3D.plotMarkers(id, pos);
+                radar3D.plotMarkers(id, pos);
                 arrows3D.arrowPoint(id, pos);
             }
             // textRF.text = $"RFDetected: {detected_markers.Count} markers, Pos : {pos.y}, {pos.x}, {pos.z}.";// Pos : {pos.x}, {pos.y}, {pos.z}";
@@ -620,7 +621,7 @@ public class Cameras : MonoBehaviour
                 pos.y = pos.y * (-1);
                 pos.x = pos.x * (-1);
                 pos.y += 0.95f;
-                // radar3D.plotMarkers(id, pos);
+                radar3D.plotMarkers(id, pos);
                 arrows3D.arrowPoint(id, pos);
             }
             // textRR.text = $"RRDetected: {detected_markers.Count} markers, Pos : {pos.y}, {pos.x}, {pos.z}.";// Pos : {pos.x}, {pos.y}, {pos.z}";

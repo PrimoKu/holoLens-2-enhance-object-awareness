@@ -28,9 +28,8 @@ public class Radar3D : MonoBehaviour
     public void mapStart() {
         mapCanvas = mapObject.transform.GetChild(0).GetComponent<Canvas>();
         mapCanvas.transform.GetChild(0).GetComponent<RawImage>().transform.Rotate(rotateX, 0.0f, 0.0f);
-        mapCanvas.transform.SetParent(MainCamera.transform);
-        mapCenter = mapObject.GetComponent<Transform>().localPosition;
-        radius = mapCanvas.GetComponent<RectTransform>().rect.yMax * 0.4f;
+        mapCenter = mapObject.GetComponent<Transform>().GetChild(0).GetComponent<RectTransform>().localPosition;
+        radius = mapCanvas.GetComponent<RectTransform>().rect.yMax;
         markers = new GameObject[] {marker0, marker1, marker2, marker3};
 
         isActive = Cameras.Radar3DIsActive();
@@ -66,11 +65,12 @@ public class Radar3D : MonoBehaviour
         var sphere = marker.GetChild(0).GetComponent<Renderer>();
         var line = marker.GetChild(1).GetComponent<LineRenderer>();
         var markerBase = marker.GetChild(2).GetComponent<Canvas>();
+
         // TMP_text text = markerBase.transform.GetChild(0).GetComponent<TextMeshPro>();
 
         float thetaDegree = 180 * (vec.y - rightmost) / (leftmost - rightmost);
         float x, y, z;
-        if(vec.z >= depthmost) {
+        if(vec.z > depthmost) {
             x = radius * Mathf.Cos((thetaDegree * Mathf.PI)/180);
             y = radius * Mathf.Sin((thetaDegree * Mathf.PI)/180) * Mathf.Cos((rotateX * Mathf.PI)/180);
             z = radius * Mathf.Sin((thetaDegree * Mathf.PI)/180) * Mathf.Sin((rotateX * Mathf.PI)/180);
@@ -81,14 +81,15 @@ public class Radar3D : MonoBehaviour
         }
         float yOff = (vec.x/depthmost)*radius/2;
 
-        marker.position = new Vector3(mapCenter.x + x, mapCenter.y + y + yOff, mapCenter.z + z);
-        line.useWorldSpace = true;
-        line.SetPosition(0, new Vector3(mapCenter.x + x, mapCenter.y + y, mapCenter.z + z));
-        line.SetPosition(1, new Vector3(mapCenter.x + x, mapCenter.y + y + yOff, mapCenter.z + z));
+        marker.localPosition = new Vector3(mapCenter.x, mapCenter.y, mapCenter.z);
+        sphere.transform.localPosition = new Vector3(x, y + yOff, z);
+        line.useWorldSpace = false;
+        line.SetPosition(0, new Vector3(x, y, z));
+        line.SetPosition(1, new Vector3(x, y + yOff, z));
         line.startColor = Color.white;
-        markerBase.GetComponent<RectTransform>().position = new Vector3(mapCenter.x + x, mapCenter.y + y, mapCenter.z + z);
-        markerBase.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = $"Marker Id: {markerId}";
-        markerBase.transform.GetChild(0).GetComponent<TextMeshProUGUI>().transform.position = new Vector3(mapCenter.x + x + 0.05f, mapCenter.y + y + yOff, mapCenter.z + z);
+        markerBase.GetComponent<RectTransform>().localPosition = new Vector3(x, y, z);
+        // markerBase.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = $"Marker Id: {markerId}";
+        // markerBase.transform.GetChild(0).GetComponent<TextMeshProUGUI>().transform.position = new Vector3(mapCenter.x + x + 0.05f, mapCenter.y + y + yOff, mapCenter.z + z);
 
         if(vec.x < 0) {
             sphere.material.SetColor("_Color", Color.blue);

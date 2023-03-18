@@ -20,7 +20,6 @@ public class Arrows3D : MonoBehaviour
 
     public void mapStart() {
         arrows = new GameObject[] {arrow0, arrow1, arrow2, arrow3};
-
         isActive = Cameras.Arrows3DIsActive();
         mapObject.gameObject.SetActive(false);
         for(int i = 0; i < arrows.Length; i++) {
@@ -43,8 +42,12 @@ public class Arrows3D : MonoBehaviour
     }
 
     public void arrowPoint(int markerId, Vector3 pos) {
-        arrows[markerId].transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
+        // arrows[markerId].transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
+        arrows[markerId].transform.position = new Vector3(0.0f, 0.0f, 0.0f);
         arrows[markerId].transform.LookAt(new Vector3(pos.y, pos.x, pos.z), Vector3.up);
+        arrows[markerId].transform.position = new Vector3(mapCenter.x, mapCenter.y, mapCenter.z);
+        arrows[markerId].transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
+
         arrows[markerId].transform.GetChild(0).GetComponent<Renderer>().enabled = true;
     }
 
