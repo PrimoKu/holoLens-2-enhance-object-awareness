@@ -155,14 +155,14 @@ public class Cameras : MonoBehaviour
         // radar3D.markersRenderDisabled();
         // arrows3D.markersRenderDisabled();
         
-        Vector3[] test = {new Vector3(5.0f, 1.0f, 2.0f), new Vector3(-1.0f, -1.5f, 1.2f), new Vector3(1.0f, 0.0f, 2.0f), new Vector3(0.0f, -2.0f, 2.0f)};
-        radar3D.plotMarkers(0, test[0]);
-        radar3D.plotMarkers(1, test[1]);
-        radar3D.plotMarkers(2, test[2]);
+        // Vector3[] test = {new Vector3(5.0f, 1.0f, 2.0f), new Vector3(-1.0f, -1.5f, 1.2f), new Vector3(1.0f, 0.0f, 2.0f), new Vector3(0.0f, -2.0f, 2.0f)};
+        // radar3D.plotMarkers(0, test[0]);
+        // radar3D.plotMarkers(1, test[1]);
+        // radar3D.plotMarkers(2, test[2]);
 
-        arrows3D.arrowPoint(0, test[0]);
-        arrows3D.arrowPoint(1, test[1]);
-        arrows3D.arrowPoint(2, test[2]);
+        // arrows3D.arrowPoint(0, test[0]);
+        // arrows3D.arrowPoint(1, test[1]);
+        // arrows3D.arrowPoint(2, test[2]);
 
 // chaging feed
 #if ENABLE_WINMD_SUPPORT
