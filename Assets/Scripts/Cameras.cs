@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -32,6 +33,7 @@ public class Cameras : MonoBehaviour
     public UnityEngine.UI.Text textRR, textRF, textLF, textLL;
     public Canvas canvas;
     public Camera MainCamera;
+    private Vector3 mCameraPos;
     public UserDefinedCameraCalibrationParams UserDefinedCalibParamsRR;
     public UserDefinedCameraCalibrationParams UserDefinedCalibParamsRF;    
     public UserDefinedCameraCalibrationParams UserDefinedCalibParamsLF;
@@ -40,28 +42,37 @@ public class Cameras : MonoBehaviour
     private Material LFMediaMaterial = null;
     private Texture2D LFMediaTexture = null;
     private byte[] LFFrameData = null;
+    private Matrix4x4 LLCameraPose;
 
     public GameObject RFPreviewPlane = null;
     private Material RFMediaMaterial = null;
     private Texture2D RFMediaTexture = null;
     private byte[] RFFrameData = null;
+    private Matrix4x4 LFCameraPose;
 
     public GameObject LLPreviewPlane = null;
     private Material LLMediaMaterial = null;
     private Texture2D LLMediaTexture = null;
     private byte[] LLFrameData = null;
+    private Matrix4x4 RFCameraPose;
 
     public GameObject RRPreviewPlane = null;
     private Material RRMediaMaterial = null;
     private Texture2D RRMediaTexture = null;
     private byte[] RRFrameData = null;
+    private Matrix4x4 RRCameraPose;
+
+    private Matrix4x4 transformUnityCamera, transformUnityWorld;
 
     public Radar3D radar3D;
     public Arrows3D arrows3D;
+    public EyeSee3D eyeSee3D;
+    public VirtualButton buttons;
 
     // Dictionary<string, bool> mapsIsActive = new Dictionary<string, bool>() {{"Radar3D", false}, {"Arrows3D", false}};
     bool radar3DActive = false;
     bool arrows3DActive = false;
+    bool eyeSee3DActive = false;
 
 #if ENABLE_WINMD_SUPPORT
     Windows.Perception.Spatial.SpatialCoordinateSystem unityWorldOrigin;
@@ -80,6 +91,17 @@ public class Cameras : MonoBehaviour
 #endif
 #endif
     }
+
+    private static Matrix4x4 floatArrayToUnityMatrix(float[] cameraPose) {
+        return new Matrix4x4()
+        {
+            m00 = cameraPose[0],  m10 = cameraPose[1],  m20 = cameraPose[2],  m30 = cameraPose[3],
+            m01 = cameraPose[4],  m11 = cameraPose[5],  m21 = cameraPose[6],  m31 = cameraPose[7],
+            m02 = cameraPose[8],  m12 = cameraPose[9],  m22 = cameraPose[10], m32 = cameraPose[11],
+            m03 = cameraPose[12], m13 = cameraPose[13], m23 = cameraPose[14], m33 = cameraPose[15],
+        };
+    }
+
     void Start()
     {   
         // canvas.transform.SetParent(MainCamera.transform);
@@ -115,6 +137,10 @@ public class Cameras : MonoBehaviour
         radar3D.mapActivate(false);
         arrows3D.mapStart();
         arrows3D.mapActivate(false);
+        eyeSee3D.mapStart();
+        eyeSee3D.mapActivate(false);
+
+        buttons.buttonStart();
 
 #if ENABLE_WINMD_SUPPORT
         researchMode = new HL2ResearchMode();
@@ -127,6 +153,10 @@ public class Cameras : MonoBehaviour
         researchMode.StartSpatialCamerasFrontLoop();
         researchMode.StartSpatialCamerasSideLoop();
 
+        LLCameraPose = floatArrayToUnityMatrix(researchMode.GetLLCameraPose());
+        LFCameraPose = floatArrayToUnityMatrix(researchMode.GetLFCameraPose());
+        RFCameraPose = floatArrayToUnityMatrix(researchMode.GetRFCameraPose());
+        RRCameraPose = floatArrayToUnityMatrix(researchMode.GetRRCameraPose());
     try
     {
         CvUtils = new OpenCVRuntimeComponent.CvUtils(
@@ -152,19 +182,19 @@ public class Cameras : MonoBehaviour
 
     void LateUpdate()
     {
-        // radar3D.markersRenderDisabled();
-        // arrows3D.markersRenderDisabled();
-        
-        // Vector3[] test = {new Vector3(5.0f, 1.0f, 2.0f), new Vector3(-1.0f, -1.5f, 1.2f), new Vector3(1.0f, 0.0f, 2.0f), new Vector3(0.0f, -2.0f, 2.0f)};
-        // radar3D.plotMarkers(0, test[0]);
-        // radar3D.plotMarkers(1, test[1]);
-        // radar3D.plotMarkers(2, test[2]);
-
+        // textLL.text = $"Pos : {MainCamera.transform.position.x}, {MainCamera.transform.position.y}, {MainCamera.transform.position.z}.";
+        // Vector3[] test = {new Vector3(0.0f, 0.0f, -1.0f), new Vector3(2.0f, 0.0f, 2.0f), new Vector3(1.0f, 0.0f, 2.0f), new Vector3(0.0f, -2.0f, 2.0f)};
+        // radar3D.plotMarkers(0, test[1]);
+        // buttons.plotButton(0, test[1], new Vector3(0.0f, 0.0f, 0.0f));
+        // eyeSee3D.plotMarkers(1, test[1]);
+        // eyeSee3D.plotMarkers(2, test[2]);
+        // buttons.plotButton(0, new Vector3(0.154f, -0.196f, 1.0f), new Quaternion(0.0f, 0.0f, 0.0f, 0.0f));
         // arrows3D.arrowPoint(0, test[0]);
         // arrows3D.arrowPoint(1, test[1]);
         // arrows3D.arrowPoint(2, test[2]);
+        mCameraPos = MainCamera.transform.position;
+        textLL.text = $"MainCamera Pos: {mCameraPos}";
 
-// chaging feed
 #if ENABLE_WINMD_SUPPORT
         if (LLPreviewPlane != null && researchMode.LLImageUpdated())
         {
@@ -181,8 +211,8 @@ public class Cameras : MonoBehaviour
                     System.Buffer.BlockCopy(frameTexture, 0, LLFrameData, 0, LLFrameData.Length);
                 }
 
-                LLMediaTexture.LoadRawTextureData(LLFrameData);
-                LLMediaTexture.Apply();
+                    LLMediaTexture.LoadRawTextureData(LLFrameData);
+                    LLMediaTexture.Apply();   
                 IBuffer buffer = LLFrameData.AsBuffer();
                 Debug.Log($"buffer length: {buffer.Length}");
                 //text.text = "Build bit map";
@@ -210,8 +240,8 @@ public class Cameras : MonoBehaviour
                     System.Buffer.BlockCopy(frameTexture, 0, LFFrameData, 0, LFFrameData.Length);
                 }
 
-                LFMediaTexture.LoadRawTextureData(LFFrameData);
-                LFMediaTexture.Apply();
+                    LFMediaTexture.LoadRawTextureData(LFFrameData);
+                    LFMediaTexture.Apply();   
                 IBuffer buffer = LFFrameData.AsBuffer();
                 Debug.Log($"buffer length: {buffer.Length}");
                 //text.text = "Build bit map";
@@ -220,7 +250,7 @@ public class Cameras : MonoBehaviour
                 bitmap_gray.CopyFromBuffer(buffer);
                 SoftwareBitmap bitmap = SoftwareBitmap.Convert(bitmap_gray, BitmapPixelFormat.Bgra8);
                 Debug.Log("Start handle track");
-                // HandleArUcoTracking(bitmap, 1);
+                HandleArUcoTracking(bitmap, 1);
                 //text.text = "end handle track";
             }
         }
@@ -240,8 +270,8 @@ public class Cameras : MonoBehaviour
                     System.Buffer.BlockCopy(frameTexture, 0, RFFrameData, 0, RFFrameData.Length);
                 }
 
-                RFMediaTexture.LoadRawTextureData(RFFrameData);
-                RFMediaTexture.Apply();
+                    RFMediaTexture.LoadRawTextureData(RFFrameData);
+                    RFMediaTexture.Apply();   
                 IBuffer buffer = RFFrameData.AsBuffer();
                 Debug.Log($"buffer length: {buffer.Length}");
                 //text.text = "Build bit map";
@@ -270,8 +300,8 @@ public class Cameras : MonoBehaviour
                     System.Buffer.BlockCopy(frameTexture, 0, RRFrameData, 0, RRFrameData.Length);
                 }
 
-                RRMediaTexture.LoadRawTextureData(RRFrameData);
-                RRMediaTexture.Apply();
+                    RRMediaTexture.LoadRawTextureData(RRFrameData);
+                    RRMediaTexture.Apply();   
                 IBuffer buffer = RRFrameData.AsBuffer();
                 Debug.Log($"buffer length: {buffer.Length}");
                 //text.text = "Build bit map";
@@ -424,6 +454,8 @@ public class Cameras : MonoBehaviour
         if(radar3DActive) {
             arrows3DActive = false;
             arrows3D.mapActivate(arrows3DActive);
+            eyeSee3DActive = false;
+            eyeSee3D.mapActivate(eyeSee3DActive);
         }
         radar3D.mapActivate(radar3DActive);
     }
@@ -433,15 +465,28 @@ public class Cameras : MonoBehaviour
         if(arrows3DActive) {
             radar3DActive = false;
             radar3D.mapActivate(radar3DActive);
+            eyeSee3DActive = false;
+            eyeSee3D.mapActivate(eyeSee3DActive);
         }
         arrows3D.mapActivate(arrows3DActive);
     }
-
-#endregion
-
-    public void MapsDeactive() {
-
+    public void EyeSee3DActiveEvent() 
+    {
+        eyeSee3DActive = !eyeSee3DActive;
+        if(eyeSee3DActive) {
+            radar3DActive = false;
+            radar3D.mapActivate(radar3DActive);
+            arrows3DActive = false;
+            arrows3D.mapActivate(arrows3DActive);
+        }
+        eyeSee3D.mapActivate(eyeSee3DActive);
     }
+    public void PointerClick()
+    {
+        // GetComponent<Renderer>().material.SetColor("_Color", Color.red);
+        Debug.Log("OK");
+    }
+#endregion
     
     public bool Radar3DIsActive() {
         return radar3DActive;
@@ -449,12 +494,17 @@ public class Cameras : MonoBehaviour
     public bool Arrows3DIsActive() {
         return arrows3DActive;
     }
+    public bool EyeSee3DIsActive() {
+        return eyeSee3DActive;
+    }
 
 
     private void OnApplicationFocus(bool focus)
     {
         if (!focus) StopSensorsEvent();
     }
+
+    
 
 #if WINDOWS_UWP
     private long GetCurrentTimestampUnix()
@@ -499,7 +549,7 @@ public class Cameras : MonoBehaviour
                             UserDefinedCalibParamsLL.imageWidth, // Image width
                             UserDefinedCalibParamsLL.imageHeight); // Image height
                             Debug.Log($"User-defined calibParams: [{calibParams}]");
-                    }
+            }
                     else if (ArUcoOnCamID == 1)
                     {
                         calibParams = new OpenCVRuntimeComponent.CameraCalibrationParams(
@@ -510,7 +560,7 @@ public class Cameras : MonoBehaviour
                             UserDefinedCalibParamsLF.imageWidth, // Image width
                             UserDefinedCalibParamsLF.imageHeight); // Image height
                             Debug.Log($"User-defined calibParams: [{calibParams}]");
-                    }
+            }
                     else if (ArUcoOnCamID == 2)
                     {
                         calibParams = new OpenCVRuntimeComponent.CameraCalibrationParams(
@@ -521,7 +571,7 @@ public class Cameras : MonoBehaviour
                             UserDefinedCalibParamsRF.imageWidth, // Image width
                             UserDefinedCalibParamsRF.imageHeight); // Image height
                             Debug.Log($"User-defined calibParams: [{calibParams}]");
-                    }
+            }
                     else if (ArUcoOnCamID == 3)
                     {
                         calibParams = new OpenCVRuntimeComponent.CameraCalibrationParams(
@@ -566,24 +616,29 @@ public class Cameras : MonoBehaviour
         // Get marker detections from opencv component
         var detected_markers = CvUtils.DetectMarkers(softwareBitmap, calibParams);
         Vector3 pos = new Vector3(0.0f, 0.0f, 0.0f);
+        Quaternion rot = new Quaternion(0.0f, 0.0f, 0.0f, 0.0f);
         if (ArUcoOnCamID == 0)
         {
-            // foreach (var marker in markers)
-            // {
-            //     marker.GetComponent<Renderer>().enabled = false;
-            // }
             radar3D.markersRenderDisabled();
             arrows3D.markersRenderDisabled();
+            eyeSee3D.markersRenderDisabled();
+
             foreach (var det_marker in detected_markers)
             {
                 int id = det_marker.Id;
                 pos = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
-                pos.y -= 1.1f;               
-                radar3D.plotMarkers(id, pos);
-                arrows3D.arrowPoint(id, pos);
+                rot = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
+                pos.y -= 1.1f;
+                // pos.y -= 0.3f;   
+                transformUnityCamera = ArUcoUtils.TransformInUnitySpace(pos, rot);
+                transformUnityWorld = LLCameraPose * transformUnityCamera;    
+                textLF.text = $"ArUco Pos: {pos}, Rot: {rot}";
+                textRF.text = $"Transform Pos: {ArUcoUtils.GetVectorFromMatrix(transformUnityWorld)}, Rot: {ArUcoUtils.GetQuatFromMatrix(transformUnityWorld)}";       
+                if(radar3DActive) {radar3D.plotMarkers(id, pos);}
+                if(arrows3DActive) {arrows3D.arrowPoint(id, pos);}
+                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, pos);}
+                buttons.plotButton(id, mCameraPos, ArUcoUtils.GetVectorFromMatrix(transformUnityWorld), ArUcoUtils.GetQuatFromMatrix(transformUnityWorld));
             }
-            // textLL.text = $"LLDetected: {detected_markers.Count} markers, Pos : {pos.y}, {pos.x}, {pos.z}.";// Pos : {pos.x}, {pos.y}, {pos.z}";
-            
         }
         else if (ArUcoOnCamID == 1)
         {
@@ -591,14 +646,19 @@ public class Cameras : MonoBehaviour
             {
                 int id = det_marker.Id;
                 pos = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
+                rot = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
                 pos.y = pos.y * (-1);
                 pos.x = pos.x * (-1);
-                pos.y -= 0.02f;
-                radar3D.plotMarkers(id, pos);
-                arrows3D.arrowPoint(id, pos);
+                // pos.y -= 0.02f;
+                transformUnityCamera = ArUcoUtils.TransformInUnitySpace(pos, rot);
+                transformUnityWorld = LFCameraPose * transformUnityCamera;
+                textLF.text = $"ArUco Pos: {pos}, Rot: {rot}";
+                textRF.text = $"Transform Pos: {ArUcoUtils.GetVectorFromMatrix(transformUnityWorld)}, Rot: {ArUcoUtils.GetQuatFromMatrix(transformUnityWorld)}"; 
+                if(radar3DActive) {radar3D.plotMarkers(id, pos);}
+                if(arrows3DActive) {arrows3D.arrowPoint(id, pos);}
+                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, pos);}
+                buttons.plotButton(id, mCameraPos, ArUcoUtils.GetVectorFromMatrix(transformUnityWorld), ArUcoUtils.GetQuatFromMatrix(transformUnityWorld));
             }
-            // textLF.text = $"LFDetected: {detected_markers.Count} markers, Pos : {pos.y}, {pos.x}, {pos.z}.";// Pos : {pos.x}, {pos.y}, {pos.z}";
-
         }
         else if (ArUcoOnCamID == 2)
         {
@@ -606,11 +666,17 @@ public class Cameras : MonoBehaviour
             {
                 int id = det_marker.Id;
                 pos = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
+                rot = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
                 pos.y += 0.3f;
-                radar3D.plotMarkers(id, pos);
-                arrows3D.arrowPoint(id, pos);
+                transformUnityCamera = ArUcoUtils.TransformInUnitySpace(pos, rot);
+                transformUnityWorld = RFCameraPose * transformUnityCamera;
+                textLF.text = $"ArUco Pos: {pos}, Rot: {rot}";
+                textRF.text = $"Transform Pos: {ArUcoUtils.GetVectorFromMatrix(transformUnityWorld)}, Rot: {ArUcoUtils.GetQuatFromMatrix(transformUnityWorld)}"; 
+                if(radar3DActive) {radar3D.plotMarkers(id, pos);}
+                if(arrows3DActive) {arrows3D.arrowPoint(id, pos);}
+                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, pos);}
+                buttons.plotButton(id, mCameraPos, ArUcoUtils.GetVectorFromMatrix(transformUnityWorld), ArUcoUtils.GetQuatFromMatrix(transformUnityWorld));
             }
-            // textRF.text = $"RFDetected: {detected_markers.Count} markers, Pos : {pos.y}, {pos.x}, {pos.z}.";// Pos : {pos.x}, {pos.y}, {pos.z}";
         }
         else if (ArUcoOnCamID == 3)
         {
@@ -618,15 +684,20 @@ public class Cameras : MonoBehaviour
             {
                 int id = det_marker.Id;
                 pos = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
+                rot = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
                 pos.y = pos.y * (-1);
                 pos.x = pos.x * (-1);
                 pos.y += 0.95f;
-                radar3D.plotMarkers(id, pos);
-                arrows3D.arrowPoint(id, pos);
+                transformUnityCamera = ArUcoUtils.TransformInUnitySpace(pos, rot);
+                transformUnityWorld = RRCameraPose * transformUnityCamera;
+                textLF.text = $"ArUco Pos: {pos}, Rot: {rot}";
+                textRF.text = $"Transform Pos: {ArUcoUtils.GetVectorFromMatrix(transformUnityWorld)}, Rot: {ArUcoUtils.GetQuatFromMatrix(transformUnityWorld)}";  
+                if(radar3DActive) {radar3D.plotMarkers(id, pos);}
+                if(arrows3DActive) {arrows3D.arrowPoint(id, pos);}
+                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, pos);}
+                buttons.plotButton(id, mCameraPos, ArUcoUtils.GetVectorFromMatrix(transformUnityWorld), ArUcoUtils.GetQuatFromMatrix(transformUnityWorld));
             }
-            // textRR.text = $"RRDetected: {detected_markers.Count} markers, Pos : {pos.y}, {pos.x}, {pos.z}.";// Pos : {pos.x}, {pos.y}, {pos.z}";
         }
-
     }
 #endif
 }

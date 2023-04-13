@@ -8,11 +8,13 @@ using UnityEngine.XR.WSA.Input;
 
 public class Arrows3D : MonoBehaviour
 {
+    public UnityEngine.UI.Text textRF, textLF, textLL;
     public Cameras Cameras;
     public Camera MainCamera;
     public GameObject mapObject;
     public GameObject arrow0, arrow1, arrow2, arrow3;
 
+    private Vector3 head;
     private Vector3 mapCenter = new Vector3(0.0f, -0.2f, 1.0f);
     private GameObject[] arrows;
 
@@ -43,7 +45,11 @@ public class Arrows3D : MonoBehaviour
 
     public void arrowPoint(int markerId, Vector3 pos) {
         // arrows[markerId].transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
-        arrows[markerId].transform.position = new Vector3(0.0f, 0.0f, 0.0f);
+        head = MainCamera.transform.position;
+        // textLL.text = $"CameraPos : {head.x}, {head.y}, {head.z}.";
+        // textLF.text = $"ArUcoPos : {pos.y}, {pos.x}, {pos.z}.";
+        // textRF.text = $"CameraPos : {head.x + pos.y}, {head.y + pos.x}, {head.z + pos.z}.";
+        arrows[markerId].transform.position = new Vector3(head.x, head.y, head.z);
         arrows[markerId].transform.LookAt(new Vector3(pos.y, pos.x, pos.z), Vector3.up);
         arrows[markerId].transform.position = new Vector3(mapCenter.x, mapCenter.y, mapCenter.z);
         arrows[markerId].transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);

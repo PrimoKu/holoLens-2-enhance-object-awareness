@@ -633,7 +633,7 @@ PlayerSettings:
   metroCertificateSubject: Mitch
   metroCertificateIssuer: Mitch
   metroCertificateNotAfter: 808105ec0635d901
-  metroApplicationDescription: credit2Austin
+  metroApplicationDescription: XtraRadarEye
   wsaImages:
     2031816: Assets/Trace Targets/Icons/3-88.png
     2097352: Assets/Trace Targets/Icons/3-142.png

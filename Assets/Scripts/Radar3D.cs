@@ -17,7 +17,6 @@ public class Radar3D : MonoBehaviour
     private Vector3 mapCenter;
     private Canvas mapCanvas;
     private float rotateX = 75.0f;
-    private int numOfTrackedObj = 4;
     private GameObject[] markers;
     private float leftmost = -1.6f;
     private float rightmost = 1.6f;
@@ -79,7 +78,7 @@ public class Radar3D : MonoBehaviour
             y = radius * (vec.z/depthmost) * Mathf.Sin((thetaDegree * Mathf.PI)/180) * Mathf.Cos((rotateX * Mathf.PI)/180);
             z = radius * (vec.z/depthmost) * Mathf.Sin((thetaDegree * Mathf.PI)/180) * Mathf.Sin((rotateX * Mathf.PI)/180);
         }
-        float yOff = (vec.x/depthmost)*radius/2;
+        float yOff = (vec.x/depthmost)*radius*1.5f;
 
         marker.localPosition = new Vector3(mapCenter.x, mapCenter.y, mapCenter.z);
         sphere.transform.localPosition = new Vector3(x, y + yOff, z);

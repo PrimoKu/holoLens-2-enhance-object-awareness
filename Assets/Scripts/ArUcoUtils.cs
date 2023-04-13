@@ -282,6 +282,19 @@ public abstract class ArUcoUtils
         return T;
     }
 
+    public static Matrix4x4 TransformInUnitySpace(Vector3 v, Quaternion q)
+        {
+            var t = new Vector3(v.y, v.x, v.z);
+            var tOpenCV = Matrix4x4.TRS(t, q, Vector3.one);
+            // var t = tOpenCV;
+            // t.m20 *= -1.0f;
+            // t.m21 *= -1.0f;
+            // t.m22 *= -1.0f;
+            // t.m23 *= -1.0f;
+
+            return tOpenCV;
+        }
+
     /// <summary>
     /// Take the average of input array
     /// </summary>
