@@ -284,7 +284,7 @@ public abstract class ArUcoUtils
 
     public static Matrix4x4 TransformInUnitySpace(Vector3 v, Quaternion q)
         {
-            var t = new Vector3(v.y, v.x, v.z);
+            var t = new Vector3(v.x, v.y, v.z);
             var tOpenCV = Matrix4x4.TRS(t, q, Vector3.one);
             // var t = tOpenCV;
             // t.m20 *= -1.0f;
