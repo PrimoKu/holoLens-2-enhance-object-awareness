@@ -82,8 +82,8 @@ public class Cameras : MonoBehaviour
     
 
     public int NumArUcoMarkers = 10;
-    private List<Vector3> ArUcoPos = new List<Vector3>();
-    private List<Quaternion> ArUcoRot = new List<Quaternion>();
+    private Vector3[] ArUcoPos = new Vector3[10];
+    private Quaternion[] ArUcoRot = new Quaternion[10];
 
 #if ENABLE_WINMD_SUPPORT
     Windows.Perception.Spatial.SpatialCoordinateSystem unityWorldOrigin;
@@ -148,8 +148,8 @@ public class Cameras : MonoBehaviour
         buttons.buttonStart();
 
         for (int i = 0; i < NumArUcoMarkers; i++) {
-            ArUcoPos.Add(new Vector3(0.0f, 0.0f, 0.0f));
-            ArUcoRot.Add(new Quaternion(0.0f, 0.0f, 0.0f, 0.0f));
+            ArUcoPos[i] = new Vector3(0.0f, 0.0f, 0.0f);
+            ArUcoRot[i] = new Quaternion(0.0f, 0.0f, 0.0f, 0.0f);
         }
 
 #if ENABLE_WINMD_SUPPORT
@@ -264,7 +264,8 @@ public class Cameras : MonoBehaviour
                 SoftwareBitmap bitmap_gray = SoftwareBitmap.CreateCopyFromBuffer(buffer, BitmapPixelFormat.Gray8, 640, 480);
                 bitmap_gray.CopyFromBuffer(buffer);
                 SoftwareBitmap bitmap = SoftwareBitmap.Convert(bitmap_gray, BitmapPixelFormat.Bgra8);
-                HandleArUcoTracking(bitmap, 0);
+                // HandleArUcoTracking(bitmap, 0);
+                DetectMarkers(bitmap, calibParamsLL, 0);
             }
         }
         // update LF camera texture
@@ -284,7 +285,8 @@ public class Cameras : MonoBehaviour
                 SoftwareBitmap bitmap_gray = SoftwareBitmap.CreateCopyFromBuffer(buffer, BitmapPixelFormat.Gray8, 640, 480);
                 bitmap_gray.CopyFromBuffer(buffer);
                 SoftwareBitmap bitmap = SoftwareBitmap.Convert(bitmap_gray, BitmapPixelFormat.Bgra8);
-                HandleArUcoTracking(bitmap, 1);
+                // HandleArUcoTracking(bitmap, 1);
+                DetectMarkers(bitmap, calibParamsLF, 1);
             }
         }
         // update RF camera texture
@@ -304,7 +306,8 @@ public class Cameras : MonoBehaviour
                 SoftwareBitmap bitmap_gray = SoftwareBitmap.CreateCopyFromBuffer(buffer, BitmapPixelFormat.Gray8, 640, 480);
                 bitmap_gray.CopyFromBuffer(buffer);
                 SoftwareBitmap bitmap = SoftwareBitmap.Convert(bitmap_gray, BitmapPixelFormat.Bgra8);
-                HandleArUcoTracking(bitmap, 2);
+                // HandleArUcoTracking(bitmap, 2);
+                DetectMarkers(bitmap, calibParamsRF, 2);
             }
         }
         // update RR camera texture
@@ -324,7 +327,8 @@ public class Cameras : MonoBehaviour
                 SoftwareBitmap bitmap_gray = SoftwareBitmap.CreateCopyFromBuffer(buffer, BitmapPixelFormat.Gray8, 640, 480);
                 bitmap_gray.CopyFromBuffer(buffer);
                 SoftwareBitmap bitmap = SoftwareBitmap.Convert(bitmap_gray, BitmapPixelFormat.Bgra8);
-                HandleArUcoTracking(bitmap, 3);
+                // HandleArUcoTracking(bitmap, 3);
+                DetectMarkers(bitmap, calibParamsRR, 3);
             }
         } 
 #endif
@@ -430,150 +434,130 @@ public class Cameras : MonoBehaviour
 #endif
 
 #if ENABLE_WINMD_SUPPORT
-    private void HandleArUcoTracking(SoftwareBitmap bitmap, int ArUcoOnCamID) {
-        if (bitmap != null) {
-            //System.Threading.Thread.Sleep(1000);
-            switch (ArUcoTrackingType) {
-                case ArUcoUtils.ArUcoTrackingType.Markers:
-                    //text.text = "start detect marker";
-                    //System.Threading.Thread.Sleep(1000);
-                    switch (CalibrationParameterType) {
-                        // Cache from user-defined parameters 
-                        case ArUcoUtils.CameraCalibrationParameterType.UserDefined:
-                            //System.Threading.Thread.Sleep(1000);
-                            if (ArUcoOnCamID == 0) { // LL
-                                // System.Threading.Thread.Sleep(1000);
-                                DetectMarkers(bitmap, calibParamsLL, ArUcoOnCamID)
-                            }
-                            else if (ArUcoOnCamID == 1) { // LF
-                                // System.Threading.Thread.Sleep(1000);
-                                DetectMarkers(bitmap, calibParamsLF, ArUcoOnCamID);
-                            }
-                            else if (ArUcoOnCamID == 2) { // RF
-                                // System.Threading.Thread.Sleep(1000);
-                                DetectMarkers(bitmap, calibParamsRF, ArUcoOnCamID);
-                            }
-                            else if (ArUcoOnCamID == 3) { // RR
-                                // System.Threading.Thread.Sleep(1000);
-                                DetectMarkers(bitmap, calibParamsRR, ArUcoOnCamID);
-                            }
-                            break;
-                        default:
-                            Debug.Log("user defined param not found");
-                            break;
-                    }
-
-                case ArUcoUtils.ArUcoTrackingType.None:
-                    //text.text = $"Not running tracking...";
-                    break;
-
-                default:
-                    //text.text = $"No option selected for tracking...";
-                    break;
-            }
-        }
-        bitmap?.Dispose();
-    }
+    // private void HandleArUcoTracking(SoftwareBitmap bitmap, int ArUcoOnCamID) {
+    //     if (bitmap != null) {
+    //         //System.Threading.Thread.Sleep(1000);
+    //         switch (ArUcoOnCamID) {
+    //             case 0:
+    //                 // System.Threading.Thread.Sleep(1000);
+    //                 DetectMarkers(bitmap, calibParamsLL, ArUcoOnCamID);
+    //                 break;
+    //             case 1:
+    //                 // System.Threading.Thread.Sleep(1000);
+    //                 DetectMarkers(bitmap, calibParamsLF, ArUcoOnCamID);
+    //                 break;
+    //             case 2:
+    //                 // System.Threading.Thread.Sleep(1000);
+    //                 DetectMarkers(bitmap, calibParamsRF, ArUcoOnCamID);
+    //                 break;
+    //             case 3:
+    //                 // System.Threading.Thread.Sleep(1000);
+    //                 DetectMarkers(bitmap, calibParamsRR, ArUcoOnCamID);
+    //                 break;
+    //             default:
+    //                 break;
+    //         }
+    //     }
+    //     bitmap?.Dispose();
+    // }
 
     private void DetectMarkers(SoftwareBitmap softwareBitmap, OpenCVRuntimeComponent.CameraCalibrationParams calibParams, int ArUcoOnCamID) {
         // Get marker detections from opencv component
         var detected_markers = CvUtils.DetectMarkers(softwareBitmap, calibParams);
-        Vector3 pos = new Vector3(0.0f, 0.0f, 0.0f);
-        Quaternion rot = new Quaternion(0.0f, 0.0f, 0.0f, 0.0f);
-        if (ArUcoOnCamID == 0)
-        {
+        // Vector3 pos = new Vector3(0.0f, 0.0f, 0.0f);
+        // Quaternion rot = new Quaternion(0.0f, 0.0f, 0.0f, 0.0f);
+        if (ArUcoOnCamID == 0) {
             radar3D.markersRenderDisabled();
             arrows3D.markersRenderDisabled();
             eyeSee3D.markersRenderDisabled();
             buttons.buttonsRenderDisabled();
 
-            foreach (var det_marker in detected_markers)
-            {
+            foreach (var det_marker in detected_markers) {
                 int id = det_marker.Id;
-                pos = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
-                // pos.x = pos.x - 0.1f;
-                // pos.y = pos.y + 0.1f;
-                textLF.text = $"Orig ArUco Pos: {pos.y}, {pos.x}, {pos.z}";
-                rot = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
+                ArUcoPos[id] = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
+                // ArUcoPos[id].x = ArUcoPos[id].x - 0.1f;
+                // ArUcoPos[id].y = ArUcoPos[id].y + 0.1f;
+                textLF.text = $"Orig ArUco Pos: {ArUcoPos[id].y}, {ArUcoPos[id].x}, {ArUcoPos[id].z}";
+                ArUcoRot[id] = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
                 
-                transformUnityCamera = ArUcoUtils.TransformInUnitySpace(pos, rot);
+                transformUnityCamera = ArUcoUtils.TransformInUnitySpace(ArUcoPos[id], ArUcoRot[id]);
                 transformUnityWorld = LLCameraPose * transformUnityCamera;
 
-                pos.y -= 1.1f;
-                // pos.y -= 0.3f;   
-                // textLF.text = $"ArUco Pos: {pos}, Rot: {rot}";
+                ArUcoPos[id].y -= 1.1f;
+                // ArUcoPos[id].y -= 0.3f;   
+                // textLF.text = $"ArUco Pos: {ArUcoPos[id]}, Rot: {ArUcoRot[id]}";
                 // textRF.text = $"Transform Pos: {ArUcoUtils.GetVectorFromMatrix(transformUnityWorld)}, Rot: {ArUcoUtils.GetQuatFromMatrix(transformUnityWorld)}";       
-                if(radar3DActive) {radar3D.plotMarkers(id, pos);}
-                if(arrows3DActive) {arrows3D.arrowPoint(id, pos);}
-                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, pos);}
-                buttons.plotButton(id, mCameraPos, pos, ArUcoUtils.GetQuatFromMatrix(transformUnityWorld));
+                if(radar3DActive) {radar3D.plotMarkers(id, ArUcoPos[id]);}
+                if(arrows3DActive) {arrows3D.arrowPoint(id, ArUcoPos[id]);}
+                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, ArUcoPos[id]);}
+                buttons.plotButton(id, mCameraPos, ArUcoPos[id], ArUcoUtils.GetQuatFromMatrix(transformUnityWorld));
             }
         }
         else if (ArUcoOnCamID == 1) {
             foreach (var det_marker in detected_markers) {
                 int id = det_marker.Id;
-                pos = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
-                // pos.x = pos.x - 0.1f;
-                // pos.y = pos.y + 0.1f;
-                textLF.text = $"Orig ArUco Pos: {pos.y}, {pos.x}, {pos.z}";
-                rot = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
+                ArUcoPos[id] = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
+                // ArUcoPos[id].x = ArUcoPos[id].x - 0.1f;
+                // ArUcoPos[id].y = ArUcoPos[id].y + 0.1f;
+                textLF.text = $"Orig ArUco Pos: {ArUcoPos[id].y}, {ArUcoPos[id].x}, {ArUcoPos[id].z}";
+                ArUcoRot[id] = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
 
-                transformUnityCamera = ArUcoUtils.TransformInUnitySpace(pos, rot);
+                transformUnityCamera = ArUcoUtils.TransformInUnitySpace(ArUcoPos[id], ArUcoRot[id]);
                 transformUnityWorld = LFCameraPose * transformUnityCamera;
-                pos.y = pos.y * (-1);
-                pos.x = pos.x * (-1);
+                ArUcoPos[id].y = ArUcoPos[id].y * (-1);
+                ArUcoPos[id].x = ArUcoPos[id].x * (-1);
 
-                pos.y -= 0.02f;
-                // textLF.text = $"ArUco Pos: {pos}, Rot: {rot}";
+                ArUcoPos[id].y -= 0.02f;
+                // textLF.text = $"ArUco Pos: {ArUcoPos[id]}, Rot: {ArUcoRot[id]}";
                 // textRF.text = $"Transform Pos: {ArUcoUtils.GetVectorFromMatrix(transformUnityWorld)}, Rot: {ArUcoUtils.GetQuatFromMatrix(transformUnityWorld)}"; 
-                if(radar3DActive) {radar3D.plotMarkers(id, pos);}
-                if(arrows3DActive) {arrows3D.arrowPoint(id, pos);}
-                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, pos);}
-                buttons.plotButton(id, mCameraPos, pos, ArUcoUtils.GetQuatFromMatrix(transformUnityWorld));
+                if(radar3DActive) {radar3D.plotMarkers(id, ArUcoPos[id]);}
+                if(arrows3DActive) {arrows3D.arrowPoint(id, ArUcoPos[id]);}
+                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, ArUcoPos[id]);}
+                buttons.plotButton(id, mCameraPos, ArUcoPos[id], ArUcoUtils.GetQuatFromMatrix(transformUnityWorld));
             }
         }
         else if (ArUcoOnCamID == 2) {
             foreach (var det_marker in detected_markers) {
                 int id = det_marker.Id;
-                pos = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
-                // pos.x = pos.x - 0.1f;
-                // pos.y = pos.y + 0.1f;
-                textLF.text = $"Orig ArUco Pos: {pos.y}, {pos.x}, {pos.z}";
-                rot = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
+                ArUcoPos[id] = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
+                // ArUcoPos[id].x = ArUcoPos[id].x - 0.1f;
+                // ArUcoPos[id].y = ArUcoPos[id].y + 0.1f;
+                textLF.text = $"Orig ArUco Pos: {ArUcoPos[id].y}, {ArUcoPos[id].x}, {ArUcoPos[id].z}";
+                ArUcoRot[id] = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
 
-                transformUnityCamera = ArUcoUtils.TransformInUnitySpace(pos, rot);
+                transformUnityCamera = ArUcoUtils.TransformInUnitySpace(ArUcoPos[id], ArUcoRot[id]);
                 transformUnityWorld = RFCameraPose * transformUnityCamera;
 
-                // pos.y += 0.15f;
-                // textLF.text = $"ArUco Pos: {pos}, Rot: {rot}";
+                // ArUcoPos[id].y += 0.15f;
+                // textLF.text = $"ArUco Pos: {ArUcoPos[id]}, Rot: {ArUcoRot[id]}";
                 // textRF.text = $"Transform Pos: {ArUcoUtils.GetVectorFromMatrix(transformUnityWorld)}, Rot: {ArUcoUtils.GetQuatFromMatrix(transformUnityWorld)}"; 
-                if(radar3DActive) {radar3D.plotMarkers(id, pos);}
-                if(arrows3DActive) {arrows3D.arrowPoint(id, pos);}
-                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, pos);}
-                buttons.plotButton(id, mCameraPos, pos, ArUcoUtils.GetQuatFromMatrix(transformUnityWorld));
+                if(radar3DActive) {radar3D.plotMarkers(id, ArUcoPos[id]);}
+                if(arrows3DActive) {arrows3D.arrowPoint(id, ArUcoPos[id]);}
+                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, ArUcoPos[id]);}
+                buttons.plotButton(id, mCameraPos, ArUcoPos[id], ArUcoUtils.GetQuatFromMatrix(transformUnityWorld));
             }
         }
         else if (ArUcoOnCamID == 3) {
             foreach (var det_marker in detected_markers) {
                 int id = det_marker.Id;
-                pos = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
-                // pos.x = pos.x - 0.1f;
-                // pos.y = pos.y + 0.1f;
-                textLF.text = $"Orig ArUco Pos: {pos.y}, {pos.x}, {pos.z}";
-                rot = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
+                ArUcoPos[id] = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
+                // ArUcoPos[id].x = ArUcoPos[id].x - 0.1f;
+                // ArUcoPos[id].y = ArUcoPos[id].y + 0.1f;
+                textLF.text = $"Orig ArUco Pos: {ArUcoPos[id].y}, {ArUcoPos[id].x}, {ArUcoPos[id].z}";
+                ArUcoRot[id] = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
 
-                transformUnityCamera = ArUcoUtils.TransformInUnitySpace(pos, rot);
+                transformUnityCamera = ArUcoUtils.TransformInUnitySpace(ArUcoPos[id], ArUcoRot[id]);
                 transformUnityWorld = RRCameraPose * transformUnityCamera;
 
-                pos.y = pos.y * (-1);
-                pos.x = pos.x * (-1);
-                pos.y += 0.95f;
-                // textLF.text = $"ArUco Pos: {pos}, Rot: {rot}";
+                ArUcoPos[id].y = ArUcoPos[id].y * (-1);
+                ArUcoPos[id].x = ArUcoPos[id].x * (-1);
+                ArUcoPos[id].y += 0.95f;
+                // textLF.text = $"ArUco Pos: {ArUcoPos[id]}, Rot: {ArUcoRot[id]}";
                 // textRF.text = $"Transform Pos: {ArUcoUtils.GetVectorFromMatrix(transformUnityWorld)}, Rot: {ArUcoUtils.GetQuatFromMatrix(transformUnityWorld)}";  
-                if(radar3DActive) {radar3D.plotMarkers(id, pos);}
-                if(arrows3DActive) {arrows3D.arrowPoint(id, pos);}
-                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, pos);}
-                buttons.plotButton(id, mCameraPos, pos, ArUcoUtils.GetQuatFromMatrix(transformUnityWorld));
+                if(radar3DActive) {radar3D.plotMarkers(id, ArUcoPos[id]);}
+                if(arrows3DActive) {arrows3D.arrowPoint(id, ArUcoPos[id]);}
+                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, ArUcoPos[id]);}
+                buttons.plotButton(id, mCameraPos, ArUcoPos[id], ArUcoUtils.GetQuatFromMatrix(transformUnityWorld));
             }
         }
     }

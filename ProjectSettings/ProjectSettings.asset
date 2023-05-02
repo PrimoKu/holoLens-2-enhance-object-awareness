@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: JohnsHopkins
-  productName: XtraRadarEye
+  productName: AR-Group-16
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -626,14 +626,14 @@ PlayerSettings:
   apiCompatibilityLevelPerPlatform: {}
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: XtraRadarEye
+  metroPackageName: AR-Group-16
   metroPackageVersion: 1.0.68.0
   metroCertificatePath: Assets\WSATestCertificate.pfx
   metroCertificatePassword: 
   metroCertificateSubject: Mitch
   metroCertificateIssuer: Mitch
   metroCertificateNotAfter: 808105ec0635d901
-  metroApplicationDescription: XtraRadarEye
+  metroApplicationDescription: AR-Group-16
   wsaImages:
     2031816: Assets/Trace Targets/Icons/3-88.png
     2097352: Assets/Trace Targets/Icons/3-142.png
