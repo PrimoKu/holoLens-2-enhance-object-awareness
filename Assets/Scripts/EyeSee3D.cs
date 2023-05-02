@@ -69,4 +69,11 @@ public class EyeSee3D : MonoBehaviour
         sphere.transform.localPosition = new Vector3(x/0.4f, y/0.4f, z/0.4f);
         sphere.enabled = true;
     }
+
+    public void enableMarkerById(int markerId, bool enabled) {
+        var marker = markers[markerId].transform;
+        var sphere = marker.GetChild(0).GetComponent<Renderer>();
+
+        sphere.enabled = enabled;
+    }
 }

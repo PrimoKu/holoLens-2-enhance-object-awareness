@@ -12,6 +12,7 @@ public class Radar3D : MonoBehaviour
     public Camera MainCamera;
     public GameObject mapObject;
     public GameObject marker0, marker1, marker2, marker3;
+    public DataCollection dataCollection;
 
     private float radius;
     private Vector3 mapCenter;
@@ -78,7 +79,7 @@ public class Radar3D : MonoBehaviour
             y = radius * (vec.z/depthmost) * Mathf.Sin((thetaDegree * Mathf.PI)/180) * Mathf.Cos((rotateX * Mathf.PI)/180);
             z = radius * (vec.z/depthmost) * Mathf.Sin((thetaDegree * Mathf.PI)/180) * Mathf.Sin((rotateX * Mathf.PI)/180);
         }
-        float yOff = (vec.x/depthmost)*radius*1.5f;
+        float yOff = (vec.x/depthmost)*radius;
 
         marker.localPosition = new Vector3(mapCenter.x, mapCenter.y, mapCenter.z);
         sphere.transform.localPosition = new Vector3(x, y + yOff, z);
@@ -102,10 +103,28 @@ public class Radar3D : MonoBehaviour
             markerBase.transform.GetChild(1).GetComponent<RawImage>().color = Color.red;
         }
 
-        sphere.enabled = true;
-        line.enabled = true;
-        markerBase.enabled = true;
-        
+        if(!dataCollection.getTestStart()) {
+            sphere.enabled = true;
+            line.enabled = true;
+            markerBase.enabled = true;
+        } else {
+            if(markerId == dataCollection.getCurrId()) {
+                sphere.enabled = true;
+                line.enabled = true;
+                markerBase.enabled = true;
+            }
+        }
+    }
+
+    public void enableMarkerById(int markerId, bool enabled) {
+        var marker = markers[markerId].transform;
+        var sphere = marker.GetChild(0).GetComponent<Renderer>();
+        var line = marker.GetChild(1).GetComponent<LineRenderer>();
+        var markerBase = marker.GetChild(2).GetComponent<Canvas>();
+
+        sphere.enabled = enabled;
+        line.enabled = enabled;
+        markerBase.enabled = enabled;
     }
 
 }
