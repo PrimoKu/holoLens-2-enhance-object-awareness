@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading;
-
+using Newtonsoft.Json;
 public class DataCollection : MonoBehaviour
 {
     public Cameras cameras;
@@ -45,10 +45,32 @@ public class DataCollection : MonoBehaviour
                 anyButtonIsClicked = false;
                 // StartCoroutine(buttons[randomMarkerList[i]].ColorLerp());
             }
-            Debug.Log("Accuracy: " + (double)count/4);
-            testStart = false;
-            virtualButton.allColorReset();
+        } 
+        else if (mapType == 2) {
+            for(int i = 0; i < buttons.Length; i++) {
+                currId = randomMarkerList[i];
+                textRR.text = $"Current ID: {randomMarkerList[i]}";
+                yield return new WaitUntil(() => anyButtonIsClicked);
+                if(markerIsClicked(randomMarkerList[i])) {
+                    count++;
+                }
+                anyButtonIsClicked = false;
+            }
         }
+        else if (mapType == 3) {
+            for(int i = 0; i < buttons.Length; i++) {
+                currId = randomMarkerList[i];
+                textRR.text = $"Current ID: {randomMarkerList[i]}";
+                yield return new WaitUntil(() => anyButtonIsClicked);
+                if(markerIsClicked(randomMarkerList[i])) {
+                    count++;
+                }
+                anyButtonIsClicked = false;
+            }
+        }
+        Debug.Log("Accuracy: " + (double)count/4);
+        testStart = false;
+        virtualButton.allColorReset();
     }
 
     private List<int> randomList() {

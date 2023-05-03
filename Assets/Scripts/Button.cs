@@ -8,7 +8,7 @@ public class Button : MonoBehaviour
     public DataCollection dataCollection;
     public void OnClick()
     {
-        GetComponent<Renderer>().material.SetColor("_Color", Color.blue);
+        // GetComponent<Renderer>().material.SetColor("_Color", Color.blue);
         
         if(dataCollection.getTestStart()) {
             dataCollection.setMarkerClicked(id);
@@ -17,7 +17,7 @@ public class Button : MonoBehaviour
 
     public void ColorReset() {
         Debug.Log("Color reset");
-        GetComponent<Renderer>().material.SetColor("_Color", Color.red);
+        // GetComponent<Renderer>().material.SetColor("_Color", Color.red);
     }
 
     public IEnumerator ColorLerp() {
