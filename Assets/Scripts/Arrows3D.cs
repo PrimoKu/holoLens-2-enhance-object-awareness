@@ -13,6 +13,7 @@ public class Arrows3D : MonoBehaviour
     public Camera MainCamera;
     public GameObject mapObject;
     public GameObject arrow0, arrow1, arrow2, arrow3;
+    public DataCollection dataCollection;
 
     private Vector3 head;
     private Vector3 mapCenter = new Vector3(0.0f, -0.2f, 1.0f);
@@ -54,7 +55,14 @@ public class Arrows3D : MonoBehaviour
         arrows[markerId].transform.position = new Vector3(mapCenter.x, mapCenter.y, mapCenter.z);
         arrows[markerId].transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
 
-        arrows[markerId].transform.GetChild(0).GetComponent<Renderer>().enabled = true;
+        
+        if(!dataCollection.getTestStart()) {
+            arrows[markerId].transform.GetChild(0).GetComponent<Renderer>().enabled = true;
+        } else {
+            if(markerId == dataCollection.getCurrId()) {
+                arrows[markerId].transform.GetChild(0).GetComponent<Renderer>().enabled = true;
+            }
+        }
     }
 
     public void enableMarkerById(int markerId, bool enabled) {

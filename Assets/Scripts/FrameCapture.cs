@@ -116,6 +116,12 @@ public class FrameCapture : MonoBehaviour
         LFCameraPose = floatArrayToUnityMatrix(researchMode.GetLFCameraPose());
         RFCameraPose = floatArrayToUnityMatrix(researchMode.GetRFCameraPose());
         RRCameraPose = floatArrayToUnityMatrix(researchMode.GetRRCameraPose());
+
+        RRCameraPose[1,2] = RRCameraPose[1,2]*(-1.0f);
+        RRCameraPose[2,1] = RRCameraPose[2,1]*(-1.0f);
+        RRCameraPose[0,3] = -0.006604989f;
+        RRCameraPose[1,3] = -0.109371658f;
+        RRCameraPose[2,3] = -0.005209249f;
 #endif
     }
 
@@ -218,5 +224,29 @@ public class FrameCapture : MonoBehaviour
         RFPreviewPlane.transform.GetComponent<Renderer>().enabled = showRealtimeFeed;
         LLPreviewPlane.transform.GetComponent<Renderer>().enabled = showRealtimeFeed;
         RRPreviewPlane.transform.GetComponent<Renderer>().enabled = showRealtimeFeed;
+    }
+
+    public Vector3 transformToLFCameraFrame(Vector3 pose, int cameraId) {
+        Vector3 poseWRTLF = new Vector3();
+
+        switch(cameraId) {
+            case 0:
+                poseWRTLF = LLCameraPose.MultiplyPoint(pose);
+                break;
+            case 1:
+                poseWRTLF = LFCameraPose.MultiplyPoint(pose);
+                break;
+            case 2:
+                poseWRTLF = RFCameraPose.MultiplyPoint(pose);
+                break;
+            case 3:
+                poseWRTLF = RRCameraPose.MultiplyPoint(pose);
+                break;
+            default:
+                poseWRTLF = pose;
+                break;
+        }
+
+        return poseWRTLF;
     }
 }

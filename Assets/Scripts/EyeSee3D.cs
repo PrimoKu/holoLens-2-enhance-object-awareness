@@ -12,6 +12,7 @@ public class EyeSee3D : MonoBehaviour
     public Camera MainCamera;
     public GameObject mapObject;
     public GameObject marker0, marker1, marker2, marker3;
+    public DataCollection dataCollection;
 
     private float a, b;
     private Vector3 mapCenter;
@@ -67,7 +68,14 @@ public class EyeSee3D : MonoBehaviour
 
         marker.localPosition = new Vector3(mapCenter.x, mapCenter.y, mapCenter.z);
         sphere.transform.localPosition = new Vector3(x/0.4f, y/0.4f, z/0.4f);
-        sphere.enabled = true;
+
+        if(!dataCollection.getTestStart()) {
+            sphere.enabled = true;
+        } else {
+            if(markerId == dataCollection.getCurrId()) {
+                sphere.enabled = true;
+            }
+        }
     }
 
     public void enableMarkerById(int markerId, bool enabled) {

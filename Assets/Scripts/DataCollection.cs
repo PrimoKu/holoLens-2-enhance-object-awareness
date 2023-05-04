@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading;
@@ -12,63 +13,79 @@ public class DataCollection : MonoBehaviour
     public VirtualButton virtualButton;
     public Button button0, button1, button2, button3;
     private Button[] buttons;
+    private int[] counts;
+    private double[] accuracys;
+    private double totalAcc;
     private List<int> randomMarkerList;
     private List<bool> markerClicked;
     private bool testStart = false;
     private bool anyButtonIsClicked = false;
     private int currId;
 
-    public UnityEngine.UI.Text textRR;
+    public UnityEngine.UI.Text textRR, text;
 
     void Start() {
         buttons = new Button[] {button0, button1, button2, button3};
+        counts = new int[] {0, 0, 0, 0, 0};
+        accuracys = new double[] {0.0, 0.0, 0.0, 0.0, 0.0};
+        text.text = $"Ready to collect data";
     }
     public IEnumerator dataCollectionStart()
     {
         testStart = true;
         int mapType = cameras.MapActiveType();
-        randomMarkerList = randomList();
-        markerClicked = new List<bool> {false, false, false, false};
-        virtualButton.allColorReset();
-        int count = 0;
-        if (mapType == 1) {
-            // radar3D.markersRenderDisabled();
-            for(int i = 0; i < buttons.Length; i++) {
-                currId = randomMarkerList[i];
-                textRR.text = $"Current ID: {randomMarkerList[i]}";
-                // radar3D.enableMarkerById(randomMarkerList[i], true);
-                yield return new WaitUntil(() => anyButtonIsClicked);
-                if(markerIsClicked(randomMarkerList[i])) {
-                    count++;
-                }
-                // radar3D.enableMarkerById(randomMarkerList[i], false);
-                anyButtonIsClicked = false;
-                // StartCoroutine(buttons[randomMarkerList[i]].ColorLerp());
-            }
-        } 
-        else if (mapType == 2) {
+        // int count = 0;
+        for(int j = 0; j < 5; j++) {
+            text.text = $"Round {j+1}";
+            randomMarkerList = randomList();
+            markerClicked = new List<bool> {false, false, false, false};
+            virtualButton.allColorReset();
             for(int i = 0; i < buttons.Length; i++) {
                 currId = randomMarkerList[i];
                 textRR.text = $"Current ID: {randomMarkerList[i]}";
                 yield return new WaitUntil(() => anyButtonIsClicked);
                 if(markerIsClicked(randomMarkerList[i])) {
-                    count++;
+                    counts[j]++;
                 }
                 anyButtonIsClicked = false;
             }
+            accuracys[j] = (double)counts[j] / 4;
         }
-        else if (mapType == 3) {
-            for(int i = 0; i < buttons.Length; i++) {
-                currId = randomMarkerList[i];
-                textRR.text = $"Current ID: {randomMarkerList[i]}";
-                yield return new WaitUntil(() => anyButtonIsClicked);
-                if(markerIsClicked(randomMarkerList[i])) {
-                    count++;
-                }
-                anyButtonIsClicked = false;
-            }
-        }
-        Debug.Log("Accuracy: " + (double)count/4);
+        Array.ForEach(accuracys, i => totalAcc += i);
+        text.text = $"Test accuracy: {totalAcc/5*100}";
+        // if (mapType == 1) {
+        //     for(int i = 0; i < buttons.Length; i++) {
+        //         currId = randomMarkerList[i];
+        //         textRR.text = $"Current ID: {randomMarkerList[i]}";
+        //         yield return new WaitUntil(() => anyButtonIsClicked);
+        //         if(markerIsClicked(randomMarkerList[i])) {
+        //             count++;
+        //         }
+        //         anyButtonIsClicked = false;
+        //     }
+        // } 
+        // else if (mapType == 2) {
+        //     for(int i = 0; i < buttons.Length; i++) {
+        //         currId = randomMarkerList[i];
+        //         textRR.text = $"Current ID: {randomMarkerList[i]}";
+        //         yield return new WaitUntil(() => anyButtonIsClicked);
+        //         if(markerIsClicked(randomMarkerList[i])) {
+        //             count++;
+        //         }
+        //         anyButtonIsClicked = false;
+        //     }
+        // }
+        // else if (mapType == 3) {
+        //     for(int i = 0; i < buttons.Length; i++) {
+        //         currId = randomMarkerList[i];
+        //         textRR.text = $"Current ID: {randomMarkerList[i]}";
+        //         yield return new WaitUntil(() => anyButtonIsClicked);
+        //         if(markerIsClicked(randomMarkerList[i])) {
+        //             count++;
+        //         }
+        //         anyButtonIsClicked = false;
+        //     }
+        // }
         testStart = false;
         virtualButton.allColorReset();
     }
