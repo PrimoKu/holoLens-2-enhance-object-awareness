@@ -23,6 +23,8 @@ public class FrameCapture : MonoBehaviour
 {
 #if ENABLE_WINMD_SUPPORT
     HL2ResearchMode researchMode;
+    private SpatialCoordinateSystem _unityCoordinateSystem = null;
+    private SpatialCoordinateSystem _frameCoordinateSystem = null;
 #endif
     public Cameras cameras;
     public GameObject LLPreviewPlane = null;
@@ -49,6 +51,10 @@ public class FrameCapture : MonoBehaviour
     private byte[] RRFrameData = null;
     private Matrix4x4 RRCameraPose;
     bool showRealtimeFeed = false;
+
+    public Matrix4x4 TransformUnityCamera { get; set; }
+    public Matrix4x4 CameraToWorldUnity { get; set; }
+    
 
 #if ENABLE_WINMD_SUPPORT
     Windows.Perception.Spatial.SpatialCoordinateSystem unityWorldOrigin;
@@ -127,6 +133,9 @@ public class FrameCapture : MonoBehaviour
 
     void FixedUpdate() {
 #if ENABLE_WINMD_SUPPORT
+
+        _frameCoordinateSystem = researchMode.GetRigNodeSpatialCoordinateSystem();
+        
         // update LL camera texture
         if (LLPreviewPlane != null && researchMode.LLImageUpdated()) {
             long ts;
@@ -249,4 +258,56 @@ public class FrameCapture : MonoBehaviour
 
         return poseWRTLF;
     }
+
+#if ENABLE_WINMD_SUPPORT
+    public Matrix4x4 GetViewToUnityTransform(int cameraID, Vector3 pos, Quaternion rot)
+    {
+        TransformUnityCamera = ArUcoUtils.GetTransformInUnityCamera(pos, rot);
+
+        if (_frameCoordinateSystem == null || unityWorldOrigin == null)
+        {
+            return Matrix4x4.identity * TransformUnityCamera;
+        }
+
+        // Get the reference transform from camera frame to unity space
+        System.Numerics.Matrix4x4? cameraToUnityRef = _frameCoordinateSystem.TryGetTransformTo(unityWorldOrigin);
+        
+        // Return identity if value does not exist
+        if (!cameraToUnityRef.HasValue)
+            return Matrix4x4.identity * TransformUnityCamera;;
+
+        // No cameraViewTransform availabnle currently, using identity for HL2
+        // Inverse of identity is identity
+        var viewToCamera = Matrix4x4.identity;
+        switch (cameraID)
+        {
+            case 0:
+                viewToCamera = LLCameraPose.inverse;
+                break;
+            case 1:
+                viewToCamera = Matrix4x4.identity; //LFCameraPose
+                break;
+            case 2:
+                viewToCamera = RFCameraPose.inverse;
+                break;
+            case 3:
+                viewToCamera = RRCameraPose.inverse;
+                break;
+            default:
+                break;
+        }
+        var cameraToUnity = ArUcoUtils.Mat4x4FromFloat4x4(cameraToUnityRef.Value);
+
+        // Compute transform to relate winrt coordinate system with unity coordinate frame (viewToUnity)
+        // WinRT transfrom -> Unity transform by transpose and flip row 3
+        var viewToUnityWinRT = viewToCamera * cameraToUnity;
+        var viewToUnity = Matrix4x4.Transpose(viewToUnityWinRT);
+        viewToUnity.m20 *= -1.0f;
+        viewToUnity.m21 *= -1.0f;
+        viewToUnity.m22 *= -1.0f;
+        viewToUnity.m23 *= -1.0f;
+
+        return viewToUnity * TransformUnityCamera;
+    }
+#endif
 }

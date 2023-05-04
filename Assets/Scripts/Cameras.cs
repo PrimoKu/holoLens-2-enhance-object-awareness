@@ -44,6 +44,7 @@ public class Cameras : MonoBehaviour
     public UserDefinedCameraCalibrationParams UserDefinedCalibParamsRR;
 
     // private Matrix4x4 transformUnityCamera, transformUnityWorld;
+    public Matrix4x4 TransformUnityWorld {get; set;}
     public Radar3D radar3D;
     public Arrows3D arrows3D;
     public EyeSee3D eyeSee3D;
@@ -60,6 +61,8 @@ public class Cameras : MonoBehaviour
     public int NumArUcoMarkers = 10;
     private Vector3[] ArUcoPos = new Vector3[10];
     private Quaternion[] ArUcoRot = new Quaternion[10];
+    private Vector3[] ButtonPos = new Vector3[10];
+    private Quaternion[] ButtonRot = new Quaternion[10];
 
     private static Matrix4x4 floatArrayToUnityMatrix(float[] cameraPose) {
         return new Matrix4x4()
@@ -85,6 +88,8 @@ public class Cameras : MonoBehaviour
         for (int i = 0; i < NumArUcoMarkers; i++) {
             ArUcoPos[i] = new Vector3(0.0f, 0.0f, 0.0f);
             ArUcoRot[i] = new Quaternion(0.0f, 0.0f, 0.0f, 0.0f);
+            ButtonPos[i] = new Vector3(0.0f, 0.0f, 0.0f);
+            ButtonRot[i] = new Quaternion(0.0f, 0.0f, 0.0f, 0.0f);
         }
 
 #if ENABLE_WINMD_SUPPORT
@@ -286,6 +291,9 @@ public class Cameras : MonoBehaviour
             foreach (var det_marker in detected_markers) {
                 int id = det_marker.Id;
                 ArUcoPos[id] = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
+                TransformUnityWorld = frameCapture.GetViewToUnityTransform(ArUcoOnCamID, ArUcoUtils.Vec3FromFloat3(det_marker.Position), ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation)));
+                ButtonPos[id] = ArUcoUtils.GetVectorFromMatrix(TransformUnityWorld);
+                ButtonRot[id] = ArUcoUtils.GetQuatFromMatrix(TransformUnityWorld);
                 // ArUcoPos[id].x = ArUcoPos[id].x - 0.1f;
                 // ArUcoPos[id].y = ArUcoPos[id].y + 0.1f;
                 textLF.text = $"Orig ArUco Pos: {ArUcoPos[id].y}, {ArUcoPos[id].x}, {ArUcoPos[id].z}";
@@ -302,13 +310,16 @@ public class Cameras : MonoBehaviour
                 if(arrows3DActive) {arrows3D.arrowPoint(id, ArUcoPos[id]);}
                 if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, ArUcoPos[id]);}
                 // buttons.plotButton(id, mCameraPos, ArUcoPos[id], ArUcoUtils.GetQuatFromMatrix(transformUnityWorld));
-                buttons.plotButton(id, mCameraPos, ArUcoPos[id], rot);
+                buttons.plotButton(id, mCameraPos, ButtonPos[id], ButtonRot[id]);
             }
         }
         else if (ArUcoOnCamID == 1) {
             foreach (var det_marker in detected_markers) {
                 int id = det_marker.Id;
                 ArUcoPos[id] = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
+                TransformUnityWorld = frameCapture.GetViewToUnityTransform(ArUcoOnCamID, ArUcoUtils.Vec3FromFloat3(det_marker.Position), ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation)));
+                ButtonPos[id] = ArUcoUtils.GetVectorFromMatrix(TransformUnityWorld);
+                ButtonRot[id] = ArUcoUtils.GetQuatFromMatrix(TransformUnityWorld);
                 // ArUcoPos[id].x = ArUcoPos[id].x - 0.1f;
                 // ArUcoPos[id].y = ArUcoPos[id].y + 0.1f;
                 textLF.text = $"Orig ArUco Pos: {ArUcoPos[id].y}, {ArUcoPos[id].x}, {ArUcoPos[id].z}";
@@ -323,13 +334,16 @@ public class Cameras : MonoBehaviour
                 if(radar3DActive) {radar3D.plotMarkers(id, ArUcoPos[id]);}
                 if(arrows3DActive) {arrows3D.arrowPoint(id, ArUcoPos[id]);}
                 if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, ArUcoPos[id]);}
-                buttons.plotButton(id, mCameraPos, ArUcoPos[id], rot);
+                buttons.plotButton(id, mCameraPos, ButtonPos[id], ButtonRot[id]);
             }
         }
         else if (ArUcoOnCamID == 2) {
             foreach (var det_marker in detected_markers) {
                 int id = det_marker.Id;
                 ArUcoPos[id] = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
+                TransformUnityWorld = frameCapture.GetViewToUnityTransform(ArUcoOnCamID, ArUcoUtils.Vec3FromFloat3(det_marker.Position), ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation)));
+                ButtonPos[id] = ArUcoUtils.GetVectorFromMatrix(TransformUnityWorld);
+                ButtonRot[id] = ArUcoUtils.GetQuatFromMatrix(TransformUnityWorld);
                 // ArUcoPos[id].x = ArUcoPos[id].x - 0.1f;
                 // ArUcoPos[id].y = ArUcoPos[id].y + 0.1f;
                 textLF.text = $"Orig ArUco Pos: {ArUcoPos[id].y}, {ArUcoPos[id].x}, {ArUcoPos[id].z}";
@@ -344,13 +358,16 @@ public class Cameras : MonoBehaviour
                 if(radar3DActive) {radar3D.plotMarkers(id, ArUcoPos[id]);}
                 if(arrows3DActive) {arrows3D.arrowPoint(id, ArUcoPos[id]);}
                 if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, ArUcoPos[id]);}
-                buttons.plotButton(id, mCameraPos, ArUcoPos[id], rot);
+                buttons.plotButton(id, mCameraPos, ButtonPos[id], ButtonRot[id]);
             }
         }
         else if (ArUcoOnCamID == 3) {
             foreach (var det_marker in detected_markers) {
                 int id = det_marker.Id;
                 ArUcoPos[id] = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
+                TransformUnityWorld = frameCapture.GetViewToUnityTransform(ArUcoOnCamID, ArUcoUtils.Vec3FromFloat3(det_marker.Position), ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation)));
+                ButtonPos[id] = ArUcoUtils.GetVectorFromMatrix(TransformUnityWorld);
+                ButtonRot[id] = ArUcoUtils.GetQuatFromMatrix(TransformUnityWorld);
                 // ArUcoPos[id].x = ArUcoPos[id].x - 0.1f;
                 // ArUcoPos[id].y = ArUcoPos[id].y + 0.1f;
                 textLF.text = $"Orig ArUco Pos: {ArUcoPos[id].y}, {ArUcoPos[id].x}, {ArUcoPos[id].z}";
@@ -365,7 +382,7 @@ public class Cameras : MonoBehaviour
                 if(radar3DActive) {radar3D.plotMarkers(id, ArUcoPos[id]);}
                 if(arrows3DActive) {arrows3D.arrowPoint(id, ArUcoPos[id]);}
                 if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, ArUcoPos[id]);}
-                buttons.plotButton(id, mCameraPos, ArUcoPos[id], rot);
+                buttons.plotButton(id, mCameraPos, ButtonPos[id], ButtonRot[id]);
             }
         }
     }

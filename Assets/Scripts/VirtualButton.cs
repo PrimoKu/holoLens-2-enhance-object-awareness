@@ -32,10 +32,10 @@ public class VirtualButton : MonoBehaviour
         // pos = new Vector3(pos.x - cPos.x, pos.y - cPos.y, pos.z - cPos.z);
         // pos = new Vector3(pos.x + 0.1f, pos.y, pos.z + 0.3f);
         textRF.text = $"Trans ArUco Pos: {pos.y}, {pos.x}, {pos.z}";
-        // button.SetPositionAndRotation(pos, rot);
+        button.SetPositionAndRotation(pos, rot);
         // button.gameObject.SetActive(true);
         // button.localPosition =  new Vector3(pos.y - cPos.x, pos.x - cPos.y, pos.z - cPos.z);
-        button.localPosition =  new Vector3(pos.y, pos.x, pos.z);
+        // button.localPosition =  new Vector3(pos.y, pos.x, pos.z);
         button.GetComponent<Renderer>().enabled = true;
     }
 
