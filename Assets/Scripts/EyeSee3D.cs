@@ -11,7 +11,7 @@ public class EyeSee3D : MonoBehaviour
     public Cameras Cameras;
     public Camera MainCamera;
     public GameObject mapObject;
-    public GameObject marker0, marker1, marker2, marker3;
+    public GameObject marker0, marker1, marker2, marker3, marker4, marker5, marker6, marker7, marker8, marker9;
     public DataCollection dataCollection;
 
     private float a, b;
@@ -26,7 +26,7 @@ public class EyeSee3D : MonoBehaviour
         mapCenter = mapObject.GetComponent<Transform>().GetChild(0).GetComponent<RectTransform>().localPosition;
         a = mapCanvas.GetComponent<RectTransform>().rect.xMax * 0.4f;
         b = mapCanvas.GetComponent<RectTransform>().rect.yMax * 0.4f;
-        markers = new GameObject[] {marker0, marker1, marker2, marker3};
+        markers = new GameObject[] {marker0, marker1, marker2, marker3, marker4, marker5, marker6, marker7, marker8, marker9};
 
         isActive = Cameras.EyeSee3DIsActive();
         mapCanvas.gameObject.SetActive(false);

@@ -143,6 +143,32 @@ public abstract class ArUcoUtils
         };
     }
 
+    public static Matrix4x4 Mat4x4FromFloat4x4TWO(System.Numerics.Matrix4x4 m1, System.Numerics.Matrix4x4 m2)
+    {
+        return new Matrix4x4()
+        {
+            m00 = m1.M11,
+            m10 = m1.M21,
+            m20 = m1.M31,
+            m30 = m2.M41,
+
+            m01 = m1.M12,
+            m11 = m1.M22,
+            m21 = m1.M32,
+            m31 = m1.M42,
+
+            m02 = m1.M13,
+            m12 = m1.M23,
+            m22 = m1.M33,
+            m32 = m2.M43,
+
+            m03 = m1.M14,
+            m13 = m1.M24,
+            m23 = m1.M34,
+            m33 = m2.M44,
+        };
+    }
+
     // Get a rotation quaternion from rodrigues
     public static Quaternion RotationQuatFromRodrigues(Vector3 v)
     {
@@ -270,8 +296,8 @@ public abstract class ArUcoUtils
     public static Matrix4x4 GetTransformInUnityCamera(Vector3 pos, Quaternion rot)
     {
         // right-handed coordinates system (OpenCV) to left-handed one (Unity)
+        // var t = new Vector3(-pos.y, -pos.x, pos.z);
         var t = new Vector3(pos.x, -pos.y, pos.z);
-
         // Compose a matrix
         var T = Matrix4x4.TRS(t, rot, Vector3.one);
         T.m20 *= -1.0f;

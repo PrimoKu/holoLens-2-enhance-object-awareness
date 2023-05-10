@@ -11,7 +11,7 @@ public class Radar3D : MonoBehaviour
     public Cameras Cameras;
     public Camera MainCamera;
     public GameObject mapObject;
-    public GameObject marker0, marker1, marker2, marker3;
+    public GameObject marker0, marker1, marker2, marker3, marker4, marker5, marker6, marker7, marker8, marker9;
     public DataCollection dataCollection;
 
     private float radius;
@@ -30,7 +30,7 @@ public class Radar3D : MonoBehaviour
         mapCanvas.transform.GetChild(0).GetComponent<RawImage>().transform.Rotate(rotateX, 0.0f, 0.0f);
         mapCenter = mapObject.GetComponent<Transform>().GetChild(0).GetComponent<RectTransform>().localPosition;
         radius = mapCanvas.GetComponent<RectTransform>().rect.yMax;
-        markers = new GameObject[] {marker0, marker1, marker2, marker3};
+        markers = new GameObject[] {marker0, marker1, marker2, marker3, marker4, marker5, marker6, marker7, marker8, marker9};
 
         isActive = Cameras.Radar3DIsActive();
         mapCanvas.gameObject.SetActive(false);

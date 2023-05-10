@@ -25,6 +25,7 @@ public class FrameCapture : MonoBehaviour
     HL2ResearchMode researchMode;
     private SpatialCoordinateSystem _unityCoordinateSystem = null;
     private SpatialCoordinateSystem _frameCoordinateSystem = null;
+    private SpatialCoordinateSystem _RGBframeCoordinateSystem = null;
 #endif
     public Cameras cameras;
     public GameObject LLPreviewPlane = null;
@@ -54,24 +55,20 @@ public class FrameCapture : MonoBehaviour
 
     public Matrix4x4 TransformUnityCamera { get; set; }
     public Matrix4x4 CameraToWorldUnity { get; set; }
+    // public UnityEngine.UI.Text text;
+    public MediaCaptureUtility.MediaCaptureProfiles MediaCaptureProfiles;
+    private MediaCaptureUtility _MediaCaptureUtility;
     
 
 #if ENABLE_WINMD_SUPPORT
     Windows.Perception.Spatial.SpatialCoordinateSystem unityWorldOrigin;
 #endif
 
-    private void Awake() {
-#if ENABLE_WINMD_SUPPORT
-#if UNITY_2020_1_OR_NEWER // note: Unity 2021.2 and later not supported
-        IntPtr WorldOriginPtr = UnityEngine.XR.WindowsMR.WindowsMREnvironment.OriginSpatialCoordinateSystem;
-        unityWorldOrigin = Marshal.GetObjectForIUnknown(WorldOriginPtr) as Windows.Perception.Spatial.SpatialCoordinateSystem;
-        //unityWorldOrigin = Windows.Perception.Spatial.SpatialLocator.GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation().CoordinateSystem;
-#else
-        IntPtr WorldOriginPtr = UnityEngine.XR.WSA.WorldManager.GetNativeISpatialCoordinateSystemPtr();
-        unityWorldOrigin = Marshal.GetObjectForIUnknown(WorldOriginPtr) as Windows.Perception.Spatial.SpatialCoordinateSystem;
-#endif
-#endif
-    }
+//     private async void Awake() {
+// #if ENABLE_WINMD_SUPPORT
+        
+// #endif
+//     }
     private static Matrix4x4 floatArrayToUnityMatrix(float[] cameraPose) {
         return new Matrix4x4()
         {
@@ -81,7 +78,7 @@ public class FrameCapture : MonoBehaviour
             m03 = cameraPose[12], m13 = cameraPose[13], m23 = cameraPose[14], m33 = cameraPose[15],
         };
     }
-    void Start()
+    async void Start()
     {
         if (LLPreviewPlane != null) {
             LLMediaMaterial = LLPreviewPlane.GetComponent<MeshRenderer>().material;
@@ -108,12 +105,19 @@ public class FrameCapture : MonoBehaviour
         }
 
 #if ENABLE_WINMD_SUPPORT
-        researchMode = new HL2ResearchMode();
 
+         _unityCoordinateSystem = Marshal.GetObjectForIUnknown(WorldManager.GetNativeISpatialCoordinateSystemPtr()) as SpatialCoordinateSystem;
+
+        _MediaCaptureUtility = new MediaCaptureUtility();
+        await _MediaCaptureUtility.InitializeMediaFrameReaderAsync(MediaCaptureProfiles);
+
+        researchMode = new HL2ResearchMode();
         researchMode.InitializeSpatialCamerasFront();
         researchMode.InitializeSpatialCamerasSide();
 
-        researchMode.SetReferenceCoordinateSystem(unityWorldOrigin);
+        _frameCoordinateSystem = researchMode.GetRigNodeSpatialCoordinateSystem();
+
+        researchMode.SetReferenceCoordinateSystem(_unityCoordinateSystem);
 
         researchMode.StartSpatialCamerasFrontLoop();
         researchMode.StartSpatialCamerasSideLoop();
@@ -133,9 +137,9 @@ public class FrameCapture : MonoBehaviour
 
     void FixedUpdate() {
 #if ENABLE_WINMD_SUPPORT
-
         _frameCoordinateSystem = researchMode.GetRigNodeSpatialCoordinateSystem();
-        
+        var mediaFrameReference = _MediaCaptureUtility.GetLatestFrame();
+        _RGBframeCoordinateSystem = mediaFrameReference.CoordinateSystem;
         // update LL camera texture
         if (LLPreviewPlane != null && researchMode.LLImageUpdated()) {
             long ts;
@@ -154,8 +158,6 @@ public class FrameCapture : MonoBehaviour
                 bitmap_gray.CopyFromBuffer(buffer);
                 SoftwareBitmap bitmap = SoftwareBitmap.Convert(bitmap_gray, BitmapPixelFormat.Bgra8);
                 cameras.SetFrameBitmap(bitmap, 0);
-                // HandleArUcoTracking(bitmap, 0);
-                // DetectMarkers(bitmap, calibParamsLL, 0);
             }
         }
         // update LF camera texture
@@ -176,8 +178,6 @@ public class FrameCapture : MonoBehaviour
                 bitmap_gray.CopyFromBuffer(buffer);
                 SoftwareBitmap bitmap = SoftwareBitmap.Convert(bitmap_gray, BitmapPixelFormat.Bgra8);
                 cameras.SetFrameBitmap(bitmap, 1);
-                // HandleArUcoTracking(bitmap, 1);
-                // DetectMarkers(bitmap, calibParamsLF, 1);
             }
         }
         // update RF camera texture
@@ -198,8 +198,6 @@ public class FrameCapture : MonoBehaviour
                 bitmap_gray.CopyFromBuffer(buffer);
                 SoftwareBitmap bitmap = SoftwareBitmap.Convert(bitmap_gray, BitmapPixelFormat.Bgra8);
                 cameras.SetFrameBitmap(bitmap, 2);
-                // HandleArUcoTracking(bitmap, 2);
-                // DetectMarkers(bitmap, calibParamsRF, 2);
             }
         }
         // update RR camera texture
@@ -220,8 +218,6 @@ public class FrameCapture : MonoBehaviour
                 bitmap_gray.CopyFromBuffer(buffer);
                 SoftwareBitmap bitmap = SoftwareBitmap.Convert(bitmap_gray, BitmapPixelFormat.Bgra8);
                 cameras.SetFrameBitmap(bitmap, 3);
-                // HandleArUcoTracking(bitmap, 3);
-                // DetectMarkers(bitmap, calibParamsRR, 3);
             }
         } 
 #endif
@@ -260,47 +256,46 @@ public class FrameCapture : MonoBehaviour
     }
 
 #if ENABLE_WINMD_SUPPORT
-    public Matrix4x4 GetViewToUnityTransform(int cameraID, Vector3 pos, Quaternion rot)
-    {
+    public Matrix4x4 GetViewToUnityTransform(int cameraID, Vector3 pos, Quaternion rot) {
         TransformUnityCamera = ArUcoUtils.GetTransformInUnityCamera(pos, rot);
 
-        if (_frameCoordinateSystem == null || unityWorldOrigin == null)
-        {
+        if (_frameCoordinateSystem == null || _unityCoordinateSystem == null) {
             return Matrix4x4.identity * TransformUnityCamera;
         }
 
-        // Get the reference transform from camera frame to unity space
-        System.Numerics.Matrix4x4? cameraToUnityRef = _frameCoordinateSystem.TryGetTransformTo(unityWorldOrigin);
-        
-        // Return identity if value does not exist
+        System.Numerics.Matrix4x4? cameraToUnityRef = _frameCoordinateSystem.TryGetTransformTo(_unityCoordinateSystem);
+        System.Numerics.Matrix4x4? RGBcameraToUnityRef = _RGBframeCoordinateSystem.TryGetTransformTo(_unityCoordinateSystem);
+
         if (!cameraToUnityRef.HasValue)
             return Matrix4x4.identity * TransformUnityCamera;;
 
-        // No cameraViewTransform availabnle currently, using identity for HL2
-        // Inverse of identity is identity
         var viewToCamera = Matrix4x4.identity;
-        switch (cameraID)
-        {
-            case 0:
-                viewToCamera = LLCameraPose.inverse;
-                break;
-            case 1:
-                viewToCamera = Matrix4x4.identity; //LFCameraPose
-                break;
-            case 2:
-                viewToCamera = RFCameraPose.inverse;
-                break;
-            case 3:
-                viewToCamera = RRCameraPose.inverse;
-                break;
-            default:
-                break;
-        }
-        var cameraToUnity = ArUcoUtils.Mat4x4FromFloat4x4(cameraToUnityRef.Value);
+        // switch (cameraID) {
+        //     case 0:
+        //         viewToCamera = Matrix4x4.Transpose(LLCameraPose).inverse;
+        //         break;
+        //     case 1:
+        //         viewToCamera = Matrix4x4.identity; //LFCameraPose
+        //         break;
+        //     case 2:
+        //         viewToCamera = Matrix4x4.Transpose(RFCameraPose).inverse;
+        //         break;
+        //     case 3:
+        //         viewToCamera = Matrix4x4.Transpose(RRCameraPose).inverse;
+        //         break;
+        //     default:
+        //         break;
+        // }
+        
+        // var cameraToUnity = ArUcoUtils.Mat4x4FromFloat4x4(cameraToUnityRef.Value);
+        var cameraToUnity = ArUcoUtils.Mat4x4FromFloat4x4TWO(RGBcameraToUnityRef.Value, cameraToUnityRef.Value);
+        // var cameraToUnity = ArUcoUtils.Mat4x4FromFloat4x4(RGBcameraToUnityRef.Value);
 
-        // Compute transform to relate winrt coordinate system with unity coordinate frame (viewToUnity)
-        // WinRT transfrom -> Unity transform by transpose and flip row 3
+        // var RGBcameraToUnity = ArUcoUtils.Mat4x4FromFloat4x4(RGBcameraToUnityRef.Value);
+        // text.text = $"{cameraToUnity[0,0]}, {cameraToUnity[0,1]}, {cameraToUnity[0,2]}, {cameraToUnity[0,3]}\n{cameraToUnity[1,0]}, {cameraToUnity[1,1]}, {cameraToUnity[1,2]}, {cameraToUnity[1,3]}\n{cameraToUnity[2,0]}, {cameraToUnity[2,1]}, {cameraToUnity[2,2]}, {cameraToUnity[2,3]}\n{cameraToUnity[3,0]}, {cameraToUnity[3,1]}, {cameraToUnity[3,2]}, {cameraToUnity[3,3]}\n";
+
         var viewToUnityWinRT = viewToCamera * cameraToUnity;
+
         var viewToUnity = Matrix4x4.Transpose(viewToUnityWinRT);
         viewToUnity.m20 *= -1.0f;
         viewToUnity.m21 *= -1.0f;
