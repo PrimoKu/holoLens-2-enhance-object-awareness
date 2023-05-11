@@ -54,6 +54,11 @@ public class DataCollection : MonoBehaviour
             radar3D.markersRenderDisabled();
             arrows3D.markersRenderDisabled();
             eyeSee3D.markersRenderDisabled();
+
+            if(j == 0) cameras.EyeSee3DActiveEvent();
+            else if(j == 1) cameras.Arrows3DActiveEvent();
+            else if(j == 2) cameras.Radar3DActiveEvent();
+
             testText.gameObject.SetActive(true);
             text.text = $"Round {j+1}";
             testText.text = $"Round {j+1}!";
