@@ -106,7 +106,7 @@ public class FrameCapture : MonoBehaviour
 
 #if ENABLE_WINMD_SUPPORT
 
-         _unityCoordinateSystem = Marshal.GetObjectForIUnknown(WorldManager.GetNativeISpatialCoordinateSystemPtr()) as SpatialCoordinateSystem;
+        _unityCoordinateSystem = Marshal.GetObjectForIUnknown(WorldManager.GetNativeISpatialCoordinateSystemPtr()) as SpatialCoordinateSystem;
 
         _MediaCaptureUtility = new MediaCaptureUtility();
         await _MediaCaptureUtility.InitializeMediaFrameReaderAsync(MediaCaptureProfiles);
@@ -137,9 +137,6 @@ public class FrameCapture : MonoBehaviour
 
     void FixedUpdate() {
 #if ENABLE_WINMD_SUPPORT
-        _frameCoordinateSystem = researchMode.GetRigNodeSpatialCoordinateSystem();
-        var mediaFrameReference = _MediaCaptureUtility.GetLatestFrame();
-        _RGBframeCoordinateSystem = mediaFrameReference.CoordinateSystem;
         // update LL camera texture
         if (LLPreviewPlane != null && researchMode.LLImageUpdated()) {
             long ts;
@@ -223,6 +220,14 @@ public class FrameCapture : MonoBehaviour
 #endif
     }
 
+    void Update() {
+#if ENABLE_WINMD_SUPPORT
+        _frameCoordinateSystem = researchMode.GetRigNodeSpatialCoordinateSystem();
+        var mediaFrameReference = _MediaCaptureUtility.GetLatestFrame();
+        _RGBframeCoordinateSystem = mediaFrameReference.CoordinateSystem;
+#endif
+    }
+
     public void ToggleFeedEvent() {
         showRealtimeFeed = !showRealtimeFeed;
         LFPreviewPlane.transform.GetComponent<Renderer>().enabled = showRealtimeFeed;
@@ -270,22 +275,6 @@ public class FrameCapture : MonoBehaviour
             return Matrix4x4.identity * TransformUnityCamera;;
 
         var viewToCamera = Matrix4x4.identity;
-        // switch (cameraID) {
-        //     case 0:
-        //         viewToCamera = Matrix4x4.Transpose(LLCameraPose).inverse;
-        //         break;
-        //     case 1:
-        //         viewToCamera = Matrix4x4.identity; //LFCameraPose
-        //         break;
-        //     case 2:
-        //         viewToCamera = Matrix4x4.Transpose(RFCameraPose).inverse;
-        //         break;
-        //     case 3:
-        //         viewToCamera = Matrix4x4.Transpose(RRCameraPose).inverse;
-        //         break;
-        //     default:
-        //         break;
-        // }
         
         // var cameraToUnity = ArUcoUtils.Mat4x4FromFloat4x4(cameraToUnityRef.Value);
         var cameraToUnity = ArUcoUtils.Mat4x4FromFloat4x4TWO(RGBcameraToUnityRef.Value, cameraToUnityRef.Value);

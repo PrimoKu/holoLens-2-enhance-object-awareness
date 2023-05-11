@@ -27,7 +27,8 @@ public class VirtualButton : MonoBehaviour
     public void plotButton(int markerId, Vector3 cPos, Vector3 pos, Quaternion rot) 
     {
         var button = buttons[markerId].transform;
-        pos.y -= 0.05f;
+        pos.x = pos.x - 0.03f;
+        pos.y = pos.y - 0.05f;
         button.SetPositionAndRotation(pos, rot);
         // textRF.text = $"Trans ArUco Pos: {pos.x}, {pos.y}, {pos.z}";
         button.GetComponent<Renderer>().enabled = true;
