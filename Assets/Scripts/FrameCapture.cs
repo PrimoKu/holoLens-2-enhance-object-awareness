@@ -55,7 +55,6 @@ public class FrameCapture : MonoBehaviour
 
     public Matrix4x4 TransformUnityCamera { get; set; }
     public Matrix4x4 CameraToWorldUnity { get; set; }
-    // public UnityEngine.UI.Text text;
     public MediaCaptureUtility.MediaCaptureProfiles MediaCaptureProfiles;
     private MediaCaptureUtility _MediaCaptureUtility;
     
@@ -63,12 +62,6 @@ public class FrameCapture : MonoBehaviour
 #if ENABLE_WINMD_SUPPORT
     Windows.Perception.Spatial.SpatialCoordinateSystem unityWorldOrigin;
 #endif
-
-//     private async void Awake() {
-// #if ENABLE_WINMD_SUPPORT
-        
-// #endif
-//     }
     private static Matrix4x4 floatArrayToUnityMatrix(float[] cameraPose) {
         return new Matrix4x4()
         {
@@ -273,18 +266,9 @@ public class FrameCapture : MonoBehaviour
 
         if (!cameraToUnityRef.HasValue)
             return Matrix4x4.identity * TransformUnityCamera;;
-
         var viewToCamera = Matrix4x4.identity;
-        
-        // var cameraToUnity = ArUcoUtils.Mat4x4FromFloat4x4(cameraToUnityRef.Value);
         var cameraToUnity = ArUcoUtils.Mat4x4FromFloat4x4TWO(RGBcameraToUnityRef.Value, cameraToUnityRef.Value);
-        // var cameraToUnity = ArUcoUtils.Mat4x4FromFloat4x4(RGBcameraToUnityRef.Value);
-
-        // var RGBcameraToUnity = ArUcoUtils.Mat4x4FromFloat4x4(RGBcameraToUnityRef.Value);
-        // text.text = $"{cameraToUnity[0,0]}, {cameraToUnity[0,1]}, {cameraToUnity[0,2]}, {cameraToUnity[0,3]}\n{cameraToUnity[1,0]}, {cameraToUnity[1,1]}, {cameraToUnity[1,2]}, {cameraToUnity[1,3]}\n{cameraToUnity[2,0]}, {cameraToUnity[2,1]}, {cameraToUnity[2,2]}, {cameraToUnity[2,3]}\n{cameraToUnity[3,0]}, {cameraToUnity[3,1]}, {cameraToUnity[3,2]}, {cameraToUnity[3,3]}\n";
-
         var viewToUnityWinRT = viewToCamera * cameraToUnity;
-
         var viewToUnity = Matrix4x4.Transpose(viewToUnityWinRT);
         viewToUnity.m20 *= -1.0f;
         viewToUnity.m21 *= -1.0f;

@@ -42,8 +42,6 @@ public class Cameras : MonoBehaviour
     public UserDefinedCameraCalibrationParams UserDefinedCalibParamsLF;    
     public UserDefinedCameraCalibrationParams UserDefinedCalibParamsRF;
     public UserDefinedCameraCalibrationParams UserDefinedCalibParamsRR;
-
-    // private Matrix4x4 transformUnityCamera, transformUnityWorld;
     public Matrix4x4 TransformUnityWorld {get; set;}
     public Radar3D radar3D;
     public Arrows3D arrows3D;
@@ -51,12 +49,9 @@ public class Cameras : MonoBehaviour
     public VirtualButton buttons;
     public DataCollection dataCollect;
     public FrameCapture frameCapture;
-
-    // Dictionary<string, bool> mapsIsActive = new Dictionary<string, bool>() {{"Radar3D", false}, {"Arrows3D", false}};
     bool radar3DActive = false;
     bool arrows3DActive = false;
     bool eyeSee3DActive = false;
-    
 
     public int NumArUcoMarkers = 4;
     private bool[] markerDetected; 
@@ -294,108 +289,49 @@ public class Cameras : MonoBehaviour
             arrows3D.markersRenderDisabled();
             eyeSee3D.markersRenderDisabled();
             buttons.buttonsRenderDisabled();
-            // foreach (int index in falseIndexes) {
-            //     radar3D.enableMarkerById(index, false);
-            //     arrows3D.enableMarkerById(index, false);
-            //     eyeSee3D.enableMarkerById(index, false);
-            //     buttons.enableMarkerById(index, false);
-            // }
 
             foreach (var det_marker in detected_markers) {
                 int id = det_marker.Id;
-                ArUcoPos[id] = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
-                ArUcoRot[id] = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
-                ArUcoPos[id] = frameCapture.transformToLFCameraFrame(ArUcoPos[id], ArUcoOnCamID);
-
-                TransformUnityWorld = frameCapture.GetViewToUnityTransform(ArUcoOnCamID, RotM_c * ArUcoPos[id], r_c * ArUcoRot[id]);
-                
-                ButtonPos[id] = ArUcoUtils.GetVectorFromMatrix(TransformUnityWorld);
-                ButtonRot[id] = ArUcoUtils.GetQuatFromMatrix(TransformUnityWorld);
-                // textLF.text = $"Orig ArUco Pos: {ArUcoPos[id].y}, {ArUcoPos[id].x}, {ArUcoPos[id].z}";
-                ArUcoPos[id].y = ArUcoPos[id].y * (-1);
-                ArUcoPos[id].x = ArUcoPos[id].x * (-1);
-                // transformUnityCamera = ArUcoUtils.TransformInUnitySpace(ArUcoPos[id], ArUcoRot[id]);
-                // transformUnityWorld = LLCameraPose * transformUnityCamera;
-       
-                if(radar3DActive) {radar3D.plotMarkers(id, ArUcoPos[id]);}
-                if(arrows3DActive) {arrows3D.arrowPoint(id, ButtonPos[id]);}
-                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, ArUcoPos[id]);}
-                // buttons.plotButton(id, mCameraPos, ArUcoPos[id], ArUcoUtils.GetQuatFromMatrix(transformUnityWorld));
-                buttons.plotButton(id, mCameraPos, ButtonPos[id], ButtonRot[id]);
+                PlotMarkers(ArUcoOnCamID, id, det_marker.Position, det_marker.Rotation);
             }
         }
         else if (ArUcoOnCamID == 1) {
             foreach (var det_marker in detected_markers) {
                 int id = det_marker.Id;
-                ArUcoPos[id] = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
-                ArUcoRot[id] = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
-                ArUcoPos[id] = frameCapture.transformToLFCameraFrame(ArUcoPos[id], ArUcoOnCamID);
-
-                TransformUnityWorld = frameCapture.GetViewToUnityTransform(ArUcoOnCamID, RotM_c * ArUcoPos[id], r_cc * ArUcoRot[id]);
-                
-                ButtonPos[id] = ArUcoUtils.GetVectorFromMatrix(TransformUnityWorld);
-                ButtonRot[id] = ArUcoUtils.GetQuatFromMatrix(TransformUnityWorld);
-
-                // textLF.text = $"Orig ArUco Pos: {ArUcoPos[id].y}, {ArUcoPos[id].x}, {ArUcoPos[id].z}";
-                ArUcoPos[id].y = ArUcoPos[id].y * (-1);
-                ArUcoPos[id].x = ArUcoPos[id].x * (-1);
-                // transformUnityCamera = ArUcoUtils.TransformInUnitySpace(ArUcoPos[id], ArUcoRot[id]);
-                // transformUnityWorld = LFCameraPose * transformUnityCamera;
-
-                if(radar3DActive) {radar3D.plotMarkers(id, ArUcoPos[id]);}
-                if(arrows3DActive) {arrows3D.arrowPoint(id, ButtonPos[id]);}
-                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, ArUcoPos[id]);}
-                buttons.plotButton(id, mCameraPos, ButtonPos[id], ButtonRot[id]);
+                PlotMarkers(ArUcoOnCamID, id, det_marker.Position, det_marker.Rotation);
             }
         }
         else if (ArUcoOnCamID == 2) {
             foreach (var det_marker in detected_markers) {
                 int id = det_marker.Id;
-                ArUcoPos[id] = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
-                ArUcoRot[id] = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
-                ArUcoPos[id] = frameCapture.transformToLFCameraFrame(ArUcoPos[id], ArUcoOnCamID);
-
-                TransformUnityWorld = frameCapture.GetViewToUnityTransform(ArUcoOnCamID, RotM_c * ArUcoPos[id], r_c * ArUcoRot[id]);
-
-                ButtonPos[id] = ArUcoUtils.GetVectorFromMatrix(TransformUnityWorld);
-                ButtonRot[id] = ArUcoUtils.GetQuatFromMatrix(TransformUnityWorld);
-
-                // textLF.text = $"Orig ArUco Pos: {ArUcoPos[id].y}, {ArUcoPos[id].x}, {ArUcoPos[id].z}";
-                ArUcoPos[id].y = ArUcoPos[id].y * (-1);
-                ArUcoPos[id].x = ArUcoPos[id].x * (-1);
-                // transformUnityCamera = ArUcoUtils.TransformInUnitySpace(ArUcoPos[id], ArUcoRot[id]);
-                // transformUnityWorld = RFCameraPose * transformUnityCamera;
-
-                if(radar3DActive) {radar3D.plotMarkers(id, ArUcoPos[id]);}
-                if(arrows3DActive) {arrows3D.arrowPoint(id, ButtonPos[id]);}
-                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, ArUcoPos[id]);}
-                buttons.plotButton(id, mCameraPos, ButtonPos[id], ButtonRot[id]);
+                PlotMarkers(ArUcoOnCamID, id, det_marker.Position, det_marker.Rotation);
             }
         }
         else if (ArUcoOnCamID == 3) {
             foreach (var det_marker in detected_markers) {
                 int id = det_marker.Id;
-                ArUcoPos[id] = ArUcoUtils.Vec3FromFloat3(det_marker.Position);
-                ArUcoRot[id] = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(det_marker.Rotation));
-                ArUcoPos[id] = frameCapture.transformToLFCameraFrame(ArUcoPos[id], ArUcoOnCamID);
-
-                TransformUnityWorld = frameCapture.GetViewToUnityTransform(ArUcoOnCamID, RotM_c * ArUcoPos[id], r_cc * ArUcoRot[id]);
-
-                ButtonPos[id] = ArUcoUtils.GetVectorFromMatrix(TransformUnityWorld);
-                ButtonRot[id] = ArUcoUtils.GetQuatFromMatrix(TransformUnityWorld);
-
-                // textLF.text = $"Orig ArUco Pos: {ArUcoPos[id].y}, {ArUcoPos[id].x}, {ArUcoPos[id].z}";
-                ArUcoPos[id].y = ArUcoPos[id].y * (-1);
-                ArUcoPos[id].x = ArUcoPos[id].x * (-1);
-                // transformUnityCamera = ArUcoUtils.TransformInUnitySpace(ArUcoPos[id], ArUcoRot[id]);
-                // transformUnityWorld = RRCameraPose * transformUnityCamera;
-
-                if(radar3DActive) {radar3D.plotMarkers(id, ArUcoPos[id]);}
-                if(arrows3DActive) {arrows3D.arrowPoint(id, ButtonPos[id]);}
-                if(eyeSee3DActive) {eyeSee3D.plotMarkers(id, ArUcoPos[id]);}
-                buttons.plotButton(id, mCameraPos, ButtonPos[id], ButtonRot[id]);
+                PlotMarkers(ArUcoOnCamID, id, det_marker.Position, det_marker.Rotation);
             }
         }
+    }
+
+    private void PlotMarkers(int CamId, int markerId, System.Numerics.Vector3 position, System.Numerics.Vector3 rotation) {
+        ArUcoPos[markerId] = ArUcoUtils.Vec3FromFloat3(position);
+        ArUcoRot[markerId] = ArUcoUtils.RotationQuatFromRodrigues(ArUcoUtils.Vec3FromFloat3(rotation));
+        ArUcoPos[markerId] = frameCapture.transformToLFCameraFrame(ArUcoPos[markerId], CamId);
+
+        TransformUnityWorld = frameCapture.GetViewToUnityTransform(CamId, RotM_c * ArUcoPos[markerId], r_cc * ArUcoRot[markerId]);
+
+        ButtonPos[markerId] = ArUcoUtils.GetVectorFromMatrix(TransformUnityWorld);
+        ButtonRot[markerId] = ArUcoUtils.GetQuatFromMatrix(TransformUnityWorld);
+
+        ArUcoPos[markerId].y = ArUcoPos[markerId].y * (-1);
+        ArUcoPos[markerId].x = ArUcoPos[markerId].x * (-1);
+
+        if(radar3DActive) {radar3D.plotMarkers(markerId, ArUcoPos[markerId]);}
+        if(arrows3DActive) {arrows3D.arrowPoint(markerId, ButtonPos[markerId]);}
+        if(eyeSee3DActive) {eyeSee3D.plotMarkers(markerId, ArUcoPos[markerId]);}
+        buttons.plotButton(markerId, ButtonPos[markerId], ButtonRot[markerId]);
     }
 #endif
 }
