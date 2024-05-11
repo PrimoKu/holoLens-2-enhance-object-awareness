@@ -57,6 +57,7 @@ public class FrameCapture : MonoBehaviour
     public Matrix4x4 CameraToWorldUnity { get; set; }
     public MediaCaptureUtility.MediaCaptureProfiles MediaCaptureProfiles;
     private MediaCaptureUtility _MediaCaptureUtility;
+    public UnityEngine.UI.Text text;
     
 
 #if ENABLE_WINMD_SUPPORT
@@ -73,6 +74,7 @@ public class FrameCapture : MonoBehaviour
     }
     async void Start()
     {
+        text.text = $"Frame Capture Start";
         if (LLPreviewPlane != null) {
             LLMediaMaterial = LLPreviewPlane.GetComponent<MeshRenderer>().material;
             LLMediaTexture = new Texture2D(640, 480, TextureFormat.Alpha8, false);

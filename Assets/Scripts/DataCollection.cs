@@ -32,7 +32,7 @@ public class DataCollection : MonoBehaviour
 
     void Start() {
         buttons = new Button[] {button0, button1, button2, button3, button4, button5, button6, button7, button8, button9};
-        text.text = $"Ready to collect data";
+        // text.text = $"Ready to collect data";
         testText.gameObject.SetActive(false);
     }
     public IEnumerator dataCollectionStart()

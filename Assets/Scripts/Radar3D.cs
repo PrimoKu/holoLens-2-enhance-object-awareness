@@ -29,6 +29,7 @@ public class Radar3D : MonoBehaviour
         mapCanvas = mapObject.transform.GetChild(0).GetComponent<Canvas>();
         mapCanvas.transform.GetChild(0).GetComponent<RawImage>().transform.Rotate(rotateX, 0.0f, 0.0f);
         mapCenter = mapObject.GetComponent<Transform>().GetChild(0).GetComponent<RectTransform>().localPosition;
+        Debug.Log("MapCenter: " + mapCenter);
         radius = mapCanvas.GetComponent<RectTransform>().rect.yMax;
         markers = new GameObject[] {marker0, marker1, marker2, marker3, marker4, marker5, marker6, marker7, marker8, marker9};
 
